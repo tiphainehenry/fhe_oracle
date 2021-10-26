@@ -13,7 +13,7 @@ ipfs daemon
 
 
 #step3: Curl requests:
-# creation of a new tender where Hash is the value of the new IPFS Hash where the offer will be stored. (for demo, we suppose hash=test) 
+# Creation of a new tender where Hash is the value of the new IPFS Hash where the offer will be stored. (for demo, we suppose hash=test) 
 curl -d "a=b"  http://localhost:34568/newTender?Hash=test
 
 # NEW OFFER:
@@ -23,6 +23,6 @@ curl -d "a=v" http://localhost:34568/offer?offer=2323
 ## Send the ciphered offer with the JSON "test.json"
 curl -v POST  http://localhost:34568/findBestOffer -d @test.json --header "Content-Type: application/json"
 
-## local debug:
+## Local debug:
 curl -d "a=b"  http://localhost:34568/debugOfferMulti
 

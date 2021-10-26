@@ -5,7 +5,6 @@
 #include <sstream>
 #include <stdexcept>
 #include "../include/handler.h"
-#include "../include/hascompare.h"
 //#include "../RSAToTFHE.cc"
 //#include "../Cloud.cc"
 #include "utils.cpp"
@@ -80,103 +79,27 @@ void handler::handle_get(http_request message)
 void handler::handle_post(http_request message)
 {
     std::cout << "[INFO] Handling post request  (Path:" << message.relative_uri().path() << "|Query:" << message.relative_uri().query() << ")" << endl;
-    //ucout << '1' << ". path msg. " << message.relative_uri().path() << endl;
-    //ucout << '2' << ". query msg." << message.relative_uri().query() << endl;
     auto queries = uri::split_query(message.relative_uri().query());
 
     if (message.relative_uri().path() == "/newTender")
     {
-        std::cout << "[INFO] Creating new tender - test modif" << endl;
-
-        //create a new Tender
+        print_info("Creating new tender (generation of FHE and RSA keys and storage to ipfs)");
+    
         if (queries.find("Hash") == queries.end())
         {
             message.reply(status_codes::InternalError, "No Hash provided");
         }
         else
         {
-
             try
             {
-                //************************************************************************************************//
-                //************************************************************************************************//
-                //FHE KEYS
-                //************************************************************************************************//
-                //************************************************************************************************//
-                cout << "FHE KEYS " << endl;
+                // key gen
+                generate_fhe_params_and_keyset();
+                utils_generateRSAKey(); 
 
-                //STEP 1:GENERATE AND STORE PARAMS
-                
-                //generate params
-                const int minimum_lambda = 110;
-                TFheGateBootstrappingParameterSet* params = new_default_gate_bootstrapping_parameters(minimum_lambda);
-                // export the parameter to file for later use
-                FILE* params_file = fopen(".tmp/params.metadata","wb");
-                export_tfheGateBootstrappingParameterSet_toFile(params_file, params);
-                fclose(params_file);
-
-                //**************//
-                //STEP 2: GENERATE AND STORE FHE KEYSET
-                //generate a random key
-                uint32_t seed[] = { 314, 1592, 657 };
-                tfhe_random_generator_setSeed(seed,3);
-                TFheGateBootstrappingSecretKeySet* key = new_random_gate_bootstrapping_secret_keyset(params);
-
-                //export the secret key to file for later use
-                FILE* secret_key = fopen(".tmp/secret.key","wb");
-                export_tfheGateBootstrappingSecretKeySet_toFile(secret_key, key);
-                fclose(secret_key);
-
-                //export the cloud key to a file (for the cloud)
-                FILE* cloud_key = fopen(".tmp/cloud.key","wb");
-                export_tfheGateBootstrappingCloudKeySet_toFile(cloud_key, &key->cloud);
-                fclose(cloud_key);
-            
-
-                //**************//
-                //clean up all pointers
-                delete_gate_bootstrapping_secret_keyset(key);
-                delete_gate_bootstrapping_parameters(params);
-
-                //************************************************************************************************//
-                //************************************************************************************************//
-                //RSA KEYS
-                //************************************************************************************************//
-                //************************************************************************************************//
-                cout << "RSA KEYS " << endl;
-                utils_generateRSAKey();
-                
-                //************************************************************************************************//
-                //************************************************************************************************//
-                //IPFS STORAGE 
-                //************************************************************************************************//
-                //************************************************************************************************//
-                cout << "IPFS STORAGE " << endl;
-                ipfs::Json tmp;
-                ipfs::Client client("localhost", 5001);
-                string response;
-                                
-                client.FilesAdd({{"publicKey.key", ipfs::http::FileUpload::Type::kFileName, "/home/vtlr2002/source/HashCompare/RestHash/.tmp/publicKey.key"},
-                                 {"secret.key", ipfs::http::FileUpload::Type::kFileName, "/home/vtlr2002/source/HashCompare/RestHash/.tmp/secret.key"},
-                                 {"cloud.key", ipfs::http::FileUpload::Type::kFileName, "/home/vtlr2002/source/HashCompare/RestHash/.tmp/cloud.key"},
-                                 {"params.metadata", ipfs::http::FileUpload::Type::kFileName, "/home/vtlr2002/source/HashCompare/RestHash/.tmp/params.metadata"}
-                                 },
-                                &tmp);
-
-
-                string keyTypeShort [4]= {
-                    "(RSA public key to cipher AES keys)",
-                    "(FHE private key to cipher clear offers)",
-                    "(FHE public key for oracle ciphered comparisons)",
-                    "(FHE params metadata used to process ciphers)"
-                    };
-
-                for (size_t i = 0; i < tmp.size(); i++)
-                {
-                    cout << "==> " << tmp[i]["hash"] << keyTypeShort[i] << endl;
-                    response = response + tmp[i]["hash"].dump() + keyTypeShort[i] + "/n";
-                }
-
+                // ipfs storage
+                string path_to_tmp = "/home/vtlr2002/source/HashCompare/RestHash/.tmp/";
+                string response = store_keys_to_ipfs(path_to_tmp);
                 message.reply(status_codes::OK, response);
             }
             catch (const std::exception &e)
@@ -190,7 +113,7 @@ void handler::handle_post(http_request message)
     {
         try
         {
-            std::cout << "[INFO] Find best offer" << endl;
+            print_info("Find best offer");
 
             ipfs::Client client("localhost", 5001);
             vector<string> offerNames;
@@ -198,6 +121,7 @@ void handler::handle_post(http_request message)
             auto tmp = message.extract_json().get();                                     // reading test.json data stored as tmp
             for (auto it = tmp.as_object().cbegin(); it != tmp.as_object().cend(); ++it) // for each ciphered offer do:
             {
+
                 std::cout << "_______________________________________________________"
                           << "\n";
 
@@ -206,13 +130,14 @@ void handler::handle_post(http_request message)
                 string offer = it->second.at(U("offer")).as_string(); // fetch offer ipfs hash
                 boost::erase_all(key, "\"");                          // clean variables
                 boost::erase_all(offer, "\"");
-                std::cout << "[INFO] Deciphering Offer n°" << it->first << "\n";
+
+                std::cout << "Deciphering Offer n°" << it->first << "\n";
                 std::cout << "(KEY: " << key << "|OFFER:" << offer << ")" << endl;
 
                 // Retrieve key and offer IPFS data and save it locally
                 std::string keyFileName = utils_ipfsToFile(key, it->first, client, "key");
                 std::string offerFileName = utils_ipfsToFile(offer, it->first, client, "offer");
-                cout << "[INFO] Offer IPFS data succesfully retrieved (AES key+ AES/FHE ciphered offer)" << endl;
+                print_info("Offer IPFS data succesfully retrieved (AES key+ AES/FHE ciphered offer)");
                 // decipher AES layer and store FHE offer in the "offers" vector
                 offers.push_back(decryptOffer(keyFileName, offerFileName));
                 cout << "[INFO] FHE offer appended (offers size=" << offers.size() << ")" << endl;
@@ -220,7 +145,8 @@ void handler::handle_post(http_request message)
 
             std::cout << "_______________________________________________________"
                       << "\n";
-            cout << "[TODO] Compare offers" << endl;
+
+            print_info("Compare offers");
             //  "offers" contains the cipher of all offers,
             //  we need tu use the function of the Comparator class to compare offers and retrieve the best offer.
 
@@ -284,22 +210,22 @@ void handler::handle_post(http_request message)
             std::cout << "[DEBUG] Test with 1 offer -test" << endl;
 
             // GENERATE OFFERS
-            int value=atoi(offers[0].c_str());
             string prefix="1.";            
             std::string AESKeyName1 = ".tmp/1.AES.key";
             std::string offerName1 = ".tmp/1.AES.data";
 
-            cipherOfferWithFHE(prefix, value);  // RETRIEVE FHE DATA AND CIPHER OFFER IN FHE
+            cipherOfferWithFHE(prefix, offers[0]);  // RETRIEVE FHE DATA AND CIPHER OFFER IN FHE
             addAESLayer(prefix, RSAfilename);             // CIPHER AES KEY IN RSA            
 
             //************************************************************//
             /// decipher AES layer and store FHE offers
             int numOffers = 1;
 
-            LweSample* cloud_ciphertext = utils_decryptOffer(prefix, AESKeyName1, offerName1, numOffers);
+            LweSample* cloud_ciphertext = utils_decryptOffer(prefix, numOffers);
             clearedOffersOne.push_back(cloud_ciphertext);
-            std::cout << "[INFO] FHE offer appended (offers size=" << clearedOffersOne.size() << ")" << endl;
 
+            //print_info_3m("FHE offer appended (offers size=", clearedOffersOne.size(), ")")
+            
             message.reply(status_codes::OK, "OK- debug");
 
         }
@@ -316,64 +242,47 @@ void handler::handle_post(http_request message)
 
             string offers[3] = {"1000","62","340"};
             vector<LweSample *> clearedOffers;
-            string RSAfilename=".tmp/publicKey.key";
 
             Json tmp = {};
             //************************************************************//
             //************************************************************//
             
-            std::cout << "[DEBUG] Test with 3 offers" << endl;
-            /// generate offers
-            
-            int value1=atoi(offers[0].c_str());
-            string prefix1="1.";            
-            std::string AESKeyName1 = ".tmp/1.AES.key";
-            std::string offerName1 = ".tmp/1.AES.data";
+            print_debug("Test with 3 offers");
+ 
+            string prefix1 = "1.";
+            string prefix2 = "2.";
+            string prefix3 = "3.";
 
-            cipherOfferWithFHE(prefix1, value1);  // RETRIEVE FHE DATA AND CIPHER OFFER IN FHE
-            addAESLayer(prefix1, RSAfilename);             // CIPHER AES KEY IN RSA            
-
-
-            int value2=atoi(offers[1].c_str());
-            string prefix2="2.";            
-            std::string AESKeyName2 = ".tmp/2.AES.key";
-            std::string offerName2 = ".tmp/2.AES.data";
-
-            cipherOfferWithFHE(prefix2, value2);  // RETRIEVE FHE DATA AND CIPHER OFFER IN FHE
-            addAESLayer(prefix2, RSAfilename);             // CIPHER AES KEY IN RSA            
-
-
-            int value3=atoi(offers[2].c_str());
-            string prefix3="3.";            
-            std::string AESKeyName3 = ".tmp/3.AES.key";
-            std::string offerName3 = ".tmp/3.AES.data";
-
-            cipherOfferWithFHE(prefix3, value3);  // RETRIEVE FHE DATA AND CIPHER OFFER IN FHE
-            addAESLayer(prefix3, RSAfilename);             // CIPHER AES KEY IN RSA            
+            /// generate offers            
+            registerMyOffer(offers[0], prefix1);
+            registerMyOffer(offers[1], prefix2);
+            registerMyOffer(offers[2], prefix3);
 
             //************************************************************//
+            int numOffers_debug = sizeof(offers)/sizeof(offers[0]);
+            print_debug(std::to_string(numOffers_debug));
 
-            //int numOffers = sizeof(offers)/sizeof(offers[0]);
+
             int numOffers = 3;
 
             /// decipher AES layer and store FHE offers
-            LweSample* cloud_ciphertext1 = utils_decryptOffer(prefix1, AESKeyName1, offerName1, numOffers);
+            LweSample* cloud_ciphertext1 = utils_decryptOffer(prefix1, numOffers);
             clearedOffers.push_back(cloud_ciphertext1);
 
-            LweSample* cloud_ciphertext2 = utils_decryptOffer(prefix2, AESKeyName2, offerName2, numOffers);
+            LweSample* cloud_ciphertext2 = utils_decryptOffer(prefix2, numOffers);
             clearedOffers.push_back(cloud_ciphertext2);
 
-            LweSample* cloud_ciphertext3 = utils_decryptOffer(prefix3, AESKeyName3, offerName3, numOffers);
+            LweSample* cloud_ciphertext3 = utils_decryptOffer(prefix3, numOffers);
             clearedOffers.push_back(cloud_ciphertext3);
 
-            std::cout << "[INFO] FHE offer appended (offers size=" << clearedOffers.size() << ")" << endl;
-            std::cout << "_______________________________________________________"
-                      << "\n";
-            cout << "[INFO] Lauching comparison" << endl;
-            //  "offers" contains the cipher of all offers,
+            print_debug(std::to_string(clearedOffers.size()) + " FHE offer appended)");
+
+            //************************************************************//
+            //  "clearedOffers" contains the cipher of all offers,
             //  we need tu use the function of the Comparator class to compare offers and retrieve the best offer.
 
-            //int numOffers = 3;
+            print_debug("Lauching comparison"); 
+            
             utils_compare(clearedOffers, numOffers);
             utils_decipherArgmax(clearedOffers.size());
 
@@ -386,7 +295,6 @@ void handler::handle_post(http_request message)
             std::cerr << e.what() << std::endl;
         }
     }
-
 
     else
     {
