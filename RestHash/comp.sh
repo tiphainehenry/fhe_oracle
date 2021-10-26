@@ -2,7 +2,7 @@
 if [ $1 != "keep" ];
 then
     rm main
-    rm *.data *.key *.o *.out *.offer
+    rm *.data *.key *.o *.out *.offer *.metadata
 fi
 if [ $1 == "clean" ];
 then

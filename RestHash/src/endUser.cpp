@@ -166,7 +166,7 @@ LweSample *utils_cipherInt(int message, TFheGateBootstrappingParameterSet *param
  * @arg offerName: name of the file with the encrypted offer
  * 
  * ***/
-LweSample *utils_decryptOffer(string prefix, string AESKeyName, string offerName, int numOffers)
+LweSample *utils_decryptOffer(string prefix, string AESKeyName, string offerName)
 {
     FILE *params_file = fopen("params.metadata", "rb");
     TFheGateBootstrappingParameterSet *params = new_tfheGateBootstrappingParameterSet_fromFile(params_file);
@@ -187,9 +187,10 @@ LweSample *utils_decryptOffer(string prefix, string AESKeyName, string offerName
     boost::erase_all(cloudPrefix, "offer");
     string cloudData = cloudPrefix + "cloud.data";
 
-    Comparator cloud = Comparator(cloudData, "cloud.key", numOffers, utils_cipherInt(0, params, key), utils_cipherInt(10, params, key));
+    Comparator cloud = Comparator(cloudData, "cloud.key", 3, utils_cipherInt(0, params, key), utils_cipherInt(10, params, key));
 
-    cloud.RSADecryption(AESKeyName, cloudPrefix); // decipher AES key
+    cout << "Step0. decipher AES key" << endl;
+    cloud.RSADecryption(AESKeyName, cloudPrefix);
 
     cout << "Step1. fetch deciphered AES key" << endl;
     boost::erase_all(cloudPrefix, "AES.data");
@@ -281,6 +282,22 @@ void cipherOfferWithFHE(string prefix, int value)
     {
         bootsSymEncrypt(&ciphertext1[i], (value >> i) & 1, key);
     }
+
+    //************************************************//
+    //******************* debug 
+    //************************************************//
+
+    //decrypt and rebuild the 16-bit plaintext answer
+    int16_t int_answer = 0;
+    for (int i=0; i<16; i++) {
+        int ai = bootsSymDecrypt(&ciphertext1[i], key);
+        int_answer |= (ai<<i);
+    }
+
+    std::cout << "offer is worth: " << int_answer << std::endl;
+    //************************************************//
+    //************************************************//
+
 
     string filename = prefix + "cloud.data";
     FILE *cloud_data = fopen(filename.c_str(), "wb");

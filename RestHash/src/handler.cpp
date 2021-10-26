@@ -230,8 +230,8 @@ void handler::handle_post(http_request message)
             //  "offers" contains the cipher of all offers,
             //  we need tu use the function of the Comparator class to compare offers and retrieve the best offer.
 
-            compare(offers.size());
-            decipherArgmax(offers.size());
+            //compare(offers.size());
+            //decipherArgmax(offers.size());
 
             message.reply(status_codes::OK, "Best offer is ... ");
         }
@@ -280,7 +280,7 @@ void handler::handle_post(http_request message)
     {
         try{
 
-            string offers[3] = {"10","62","34"};
+            string offers[3] = {"10"};
             vector<LweSample *> clearedOffersOne;
             string RSAfilename="publicKey.key";
 
@@ -300,7 +300,9 @@ void handler::handle_post(http_request message)
 
             //************************************************************//
             /// decipher AES layer and store FHE offers
-            LweSample* cloud_ciphertext = utils_decryptOffer(prefix, AESKeyName1, offerName1);
+            int numOffers = 1;
+
+            LweSample* cloud_ciphertext = utils_decryptOffer(prefix, AESKeyName1, offerName1, numOffers);
             clearedOffersOne.push_back(cloud_ciphertext);
             std::cout << "[INFO] FHE offer appended (offers size=" << clearedOffersOne.size() << ")" << endl;
 
@@ -314,13 +316,12 @@ void handler::handle_post(http_request message)
         }
     }
 
-    else if (message.relative_uri().path() == "/debugOfferTwo")
+    else if (message.relative_uri().path() == "/debugOfferMulti")
     {
         try{
 
-            string offers[3] = {"10","62","34"};
-            vector<LweSample *> clearedOffersOne;
-            vector<LweSample *> clearedOffersTwo;
+            string offers[3] = {"1000","62","340"};
+            vector<LweSample *> clearedOffers;
             string RSAfilename="publicKey.key";
 
             Json tmp = {};
@@ -357,28 +358,69 @@ void handler::handle_post(http_request message)
             addAESLayer(prefix3, RSAfilename);             // CIPHER AES KEY IN RSA            
 
             //************************************************************//
+
+            //int numOffers = sizeof(offers)/sizeof(offers[0]);
+            int numOffers = 3;
+
             /// decipher AES layer and store FHE offers
-            LweSample* cloud_ciphertext1 = utils_decryptOffer(prefix1, AESKeyName1, offerName1);
-            clearedOffersTwo.push_back(cloud_ciphertext1);
+            LweSample* cloud_ciphertext1 = utils_decryptOffer(prefix1, AESKeyName1, offerName1, numOffers);
+            clearedOffers.push_back(cloud_ciphertext1);
+
+            LweSample* cloud_ciphertext2 = utils_decryptOffer(prefix2, AESKeyName2, offerName2, numOffers);
+            clearedOffers.push_back(cloud_ciphertext2);
+
+            LweSample* cloud_ciphertext3 = utils_decryptOffer(prefix3, AESKeyName3, offerName3, numOffers);
+            clearedOffers.push_back(cloud_ciphertext3);
+
+            //************************************************//
+            //******************* debug 
+            //************************************************//
+
+            //reads the cloud key from file
+            FILE* secret_key = fopen("secret.key","rb");
+            TFheGateBootstrappingSecretKeySet* key = new_tfheGateBootstrappingSecretKeySet_fromFile(secret_key);
+            fclose(secret_key);
 
 
-            LweSample* cloud_ciphertext2 = utils_decryptOffer(prefix2, AESKeyName2, offerName2);
-            clearedOffersTwo.push_back(cloud_ciphertext2);
+            //decrypt and rebuild the 16-bit plaintext answer
+            int16_t int_answer1 = 0;
+            for (int i=0; i<16; i++) {
+                int ai1 = bootsSymDecrypt(&cloud_ciphertext1[i], key);
+                int_answer1 |= (ai1<<i);
+            }
+            std::cout << "offer 1 was worth: " << int_answer1 << std::endl;
 
-            LweSample* cloud_ciphertext3 = utils_decryptOffer(prefix3, AESKeyName3, offerName3);
-            clearedOffersTwo.push_back(cloud_ciphertext3);
+            //decrypt and rebuild the 16-bit plaintext answer
+            int16_t int_answer2 = 0;
+            for (int i=0; i<16; i++) {
+                int ai2 = bootsSymDecrypt(&cloud_ciphertext2[i], key);
+                int_answer2 |= (ai2<<i);
+            }
+            std::cout << "offer 2 was worth: " << int_answer2 << std::endl;
 
-            std::cout << "[INFO] FHE offer appended (offers size=" << clearedOffersTwo.size() << ")" << endl;
+            //decrypt and rebuild the 16-bit plaintext answer
+            int16_t int_answer3 = 0;
+            for (int i=0; i<16; i++) {
+                int ai3 = bootsSymDecrypt(&cloud_ciphertext3[i], key);
+                int_answer3 |= (ai3<<i);
+            }
+            std::cout << "offer 3 was worth: " << int_answer3 << std::endl;
 
+            delete_gate_bootstrapping_secret_keyset(key);
 
+            //************************************************//
+            //************************************************//
+
+            std::cout << "[INFO] FHE offer appended (offers size=" << clearedOffers.size() << ")" << endl;
             std::cout << "_______________________________________________________"
                       << "\n";
-            cout << "[TODO] Compare offers" << endl;
+            //cout << "[TODO] Compare offers" << endl;
             //  "offers" contains the cipher of all offers,
             //  we need tu use the function of the Comparator class to compare offers and retrieve the best offer.
 
-            compare(clearedOffersTwo);
-            decipherArgmax(clearedOffersTwo.size());
+            //int numOffers = 3;
+            utils_compare(clearedOffers, numOffers);
+            utils_decipherArgmax(clearedOffers.size());
 
             message.reply(status_codes::OK, "OK- debug");
 
