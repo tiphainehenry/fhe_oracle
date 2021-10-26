@@ -85,8 +85,8 @@ namespace std
             CryptoPP::RSA::PrivateKey privateKey(params);
             CryptoPP::RSA::PublicKey publicKey(params);
 
-            publicKey.DEREncode(FileSink("publicKey.key", true).Ref());
-            privateKey.DEREncode(FileSink("privateKey.key", true).Ref());
+            publicKey.DEREncode(FileSink(".tmp/publicKey.key", true).Ref());
+            privateKey.DEREncode(FileSink(".tmp/privateKey.key", true).Ref());
             return publicKey;
         }
         /***

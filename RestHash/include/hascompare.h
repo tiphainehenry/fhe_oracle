@@ -13,8 +13,8 @@
 #include <cryptopp/aes.h>
 #include <cryptopp/filters.h>
 #include <cryptopp/rsa.h>
-#include "../Verif.cc"
-#include "../Hasher.cc"
+#include "./src/Verif.cc"
+#include "./src/Hasher.cc"
 // #include "../RSAToTFHE.cc"
 // #include "../Cloud.cc"
 using namespace CryptoPP;

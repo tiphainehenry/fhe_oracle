@@ -39,3 +39,4 @@ HashCompare/*.data
 RestHash/*.key
 RestHash/*.data
 
+.tmp

@@ -22,22 +22,15 @@ public:
 
     RSAToTFHE(string AESKeyName, string offer, string cloudKeyName)
     {
-        cout << "RTT 1" << endl;
         RSADecryption(AESKeyName);
-        cout << "RTT 2" << endl;
         FILE *ck = fopen(cloudKeyName.c_str(), "rb");
         cloudKey = new_tfheGateBootstrappingCloudKeySet_fromFile(ck);
         cipher  = new_gate_bootstrapping_ciphertext_array(16, cloudKey->params);
-        cout << &cipher[0] << endl;
         fclose(ck);
-        cout << "RTT 3" << endl;
         aes_iv_t iv{};
-        aes_key_t AESKey = getAESKey("AES2.key");
-        cout << "RTT 4" << endl;
-        decrypt(AESKey, iv, offer, "TFHE.offer");
-        cout << "RTT 5" << endl;
-        getCipher("TFHE.offer");
-        cout << "RTT 6" << endl;
+        aes_key_t AESKey = getAESKey(".tmp/AES2.key");
+        decrypt(AESKey, iv, offer, ".tmp/TFHE.offer");
+        getCipher(".tmp/TFHE.offer");
     }
 
     ~RSAToTFHE() {}
@@ -48,7 +41,6 @@ public:
         FILE *cloud_data = fopen(fileName.c_str(), "rb");
         for (int i = 0; i < 16; i++)
         {
-            cout << i << endl;
             import_gate_bootstrapping_ciphertext_fromFile(cloud_data, &tmp[i], cloudKey->params);
         }
         fclose(cloud_data);
@@ -71,14 +63,12 @@ public:
     {
         CryptoPP::AutoSeededRandomPool rng;
         CryptoPP::RSAES_OAEP_SHA_Decryptor dec;
-        dec.AccessKey().BERDecode(CryptoPP::FileSource("privateKey.key", true).Ref());
-
-        cout << "[RSATOTFHE][RSADecryption] filename: " << filename << endl;
+        dec.AccessKey().BERDecode(CryptoPP::FileSource(".tmp/privateKey.key", true).Ref());
 
         // std::ifstream in{"AES.key", std::ios::binary};
         CryptoPP::FileSource ss2(filename.c_str(), true,
                                  new CryptoPP::PK_DecryptorFilter(rng, dec,
-                                                                  new CryptoPP::FileSink("AES2.key")) // PK_DecryptorFilter
+                                                                  new CryptoPP::FileSink(".tmp/AES2.key")) // PK_DecryptorFilter
         );                                                                                            // StringSource
     }
     aes_key_t getAESKey(string filename)

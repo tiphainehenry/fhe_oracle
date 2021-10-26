@@ -31,7 +31,7 @@ namespace std
         vector<LweSample *> ciphertext1;
         Comparator(string fileName, string cloudKeyName, int nbr, LweSample *Zero, LweSample *One)
         {
-            cout << "cloud cons \n";
+            //cout << "cloud cons \n";
             offersNbr = nbr;
             zero = Zero;
             one = One;
@@ -44,7 +44,7 @@ namespace std
                 ciphertext1.push_back(new_gate_bootstrapping_ciphertext_array(16, cloudKey->params));
                 ciphertext2.push_back(new_gate_bootstrapping_ciphertext_array(16, cloudKey->params));
             }
-            cout << "cloud cons end\n";
+            //cout << "cloud cons end\n";
         }
         ~Comparator() {}
         
@@ -70,10 +70,10 @@ namespace std
          * */
         auto RSADecryption(std::string filename, std::string prefix)
         {
-            cout <<"entering rsa decryption"<< endl;
+            //cout <<"entering rsa decryption"<< endl;
             CryptoPP::AutoSeededRandomPool rng;
             CryptoPP::RSAES_OAEP_SHA_Decryptor dec;
-            dec.AccessKey().BERDecode(CryptoPP::FileSource("privateKey.key", true).Ref());
+            dec.AccessKey().BERDecode(CryptoPP::FileSource(".tmp/privateKey.key", true).Ref());
 
             // compute prefix and generate AES2.key filename
             std::string AES2Prefix = filename;
@@ -106,23 +106,15 @@ namespace std
          * **/
         LweSample *getCipher(string fileName)
         {
-            cout << "filename: " << fileName << endl;
             FILE *cloud_data = fopen(fileName.c_str(), "rb");
 
 
             LweSample *tmp = new_gate_bootstrapping_ciphertext_array(16, cloudKey->params); 
-            cout << "opened cloud \n";
-            cout << cloud_data << endl;
-
             for (int i = 0; i < 16; i++)
                 {
-                    cout << "test" << endl;
-                    cout << &tmp[i] << endl;
-                    cout << cloudKey->params << endl;
                     import_gate_bootstrapping_ciphertext_fromFile(cloud_data, &tmp[i], cloudKey->params);
                 }
             fclose(cloud_data);
-            cout << "closed cloud \n";
             return tmp;
         }
 
@@ -138,7 +130,7 @@ namespace std
             LweSample *tt = new_gate_bootstrapping_ciphertext_array(16, cloudKey->params);
             full_adder(res, a, b, 16, cloudKey);
 
-            FILE *answer_data = fopen("answer.data", "wb");
+            FILE *answer_data = fopen(".tmp/answer.data", "wb");
             for (int i = 0; i < 16; i++)
             {
                 export_gate_bootstrapping_ciphertext_toFile(answer_data, &res[i], cloudKey->params);
@@ -172,7 +164,6 @@ namespace std
                 LweSample *tmp = zero;
                 for (size_t j = 0; j < ciphertext1.size(); j++)
                 {
-                    cout << i << " / " << j << endl;
                     if (j != i)
                         tmp = addition(tmp, minimum(ciphertext1, 16, cloudKey, i, j));
                     else
@@ -185,7 +176,7 @@ namespace std
 
         void exportAnswers()
         {
-            FILE *cloud_data = fopen("answer.data", "wb");
+            FILE *cloud_data = fopen(".tmp/answer.data", "wb");
             for (size_t j = 0; j < ciphertext2.size(); j++)
             {
                 for (int i = 0; i < 16; i++)

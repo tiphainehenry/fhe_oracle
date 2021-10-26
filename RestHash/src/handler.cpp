@@ -111,7 +111,7 @@ void handler::handle_post(http_request message)
                 const int minimum_lambda = 110;
                 TFheGateBootstrappingParameterSet* params = new_default_gate_bootstrapping_parameters(minimum_lambda);
                 // export the parameter to file for later use
-                FILE* params_file = fopen("params.metadata","wb");
+                FILE* params_file = fopen(".tmp/params.metadata","wb");
                 export_tfheGateBootstrappingParameterSet_toFile(params_file, params);
                 fclose(params_file);
 
@@ -123,12 +123,12 @@ void handler::handle_post(http_request message)
                 TFheGateBootstrappingSecretKeySet* key = new_random_gate_bootstrapping_secret_keyset(params);
 
                 //export the secret key to file for later use
-                FILE* secret_key = fopen("secret.key","wb");
+                FILE* secret_key = fopen(".tmp/secret.key","wb");
                 export_tfheGateBootstrappingSecretKeySet_toFile(secret_key, key);
                 fclose(secret_key);
 
                 //export the cloud key to a file (for the cloud)
-                FILE* cloud_key = fopen("cloud.key","wb");
+                FILE* cloud_key = fopen(".tmp/cloud.key","wb");
                 export_tfheGateBootstrappingCloudKeySet_toFile(cloud_key, &key->cloud);
                 fclose(cloud_key);
             
@@ -156,19 +156,13 @@ void handler::handle_post(http_request message)
                 ipfs::Client client("localhost", 5001);
                 string response;
                                 
-                client.FilesAdd({{"publicKey.key", ipfs::http::FileUpload::Type::kFileName, "/home/vtlr2002/source/HashCompare/RestHash/publicKey.key"},
-                                 {"secret.key", ipfs::http::FileUpload::Type::kFileName, "/home/vtlr2002/source/HashCompare/RestHash/secret.key"},
-                                 {"cloud.key", ipfs::http::FileUpload::Type::kFileName, "/home/vtlr2002/source/HashCompare/RestHash/cloud.key"},
-                                 {"params.metadata", ipfs::http::FileUpload::Type::kFileName, "/home/vtlr2002/source/HashCompare/RestHash/params.metadata"}
+                client.FilesAdd({{"publicKey.key", ipfs::http::FileUpload::Type::kFileName, "/home/vtlr2002/source/HashCompare/RestHash/.tmp/publicKey.key"},
+                                 {"secret.key", ipfs::http::FileUpload::Type::kFileName, "/home/vtlr2002/source/HashCompare/RestHash/.tmp/secret.key"},
+                                 {"cloud.key", ipfs::http::FileUpload::Type::kFileName, "/home/vtlr2002/source/HashCompare/RestHash/.tmp/cloud.key"},
+                                 {"params.metadata", ipfs::http::FileUpload::Type::kFileName, "/home/vtlr2002/source/HashCompare/RestHash/.tmp/params.metadata"}
                                  },
                                 &tmp);
 
-                string keyType [4]= {
-                    " is publicKey hash (RSA public key to cipher AES keys; the RSA private key is kept secret by oracle)",
-                    " is secretkey hash (FHE private key to cipher clear offers)",
-                    " is cloudKey hash (FHE public key for oracle ciphered comparisons)",
-                    " is FHE params"                    
-                    };
 
                 string keyTypeShort [4]= {
                     "(RSA public key to cipher AES keys)",
@@ -179,7 +173,7 @@ void handler::handle_post(http_request message)
 
                 for (size_t i = 0; i < tmp.size(); i++)
                 {
-                    cout << "==> " << tmp[i]["hash"] << keyType[i] << endl;
+                    cout << "==> " << tmp[i]["hash"] << keyTypeShort[i] << endl;
                     response = response + tmp[i]["hash"].dump() + keyTypeShort[i] + "/n";
                 }
 
@@ -257,8 +251,8 @@ void handler::handle_post(http_request message)
 
         /// storage of new offer into ipfs
         client.FilesAdd(
-            {{"AES.key", ipfs::http::FileUpload::Type::kFileName, "./" + prefix + "AES.key"},
-             {"AES.data", ipfs::http::FileUpload::Type::kFileName, "./" + prefix + "AES.data"}},
+            {{"AES.key", ipfs::http::FileUpload::Type::kFileName, ".tmp/" + prefix + "AES.key"},
+             {"AES.data", ipfs::http::FileUpload::Type::kFileName, ".tmp/" + prefix + "AES.data"}},
             &tmp);
         // remove("AES.key");
         // remove("AES.data");
@@ -292,8 +286,8 @@ void handler::handle_post(http_request message)
             // GENERATE OFFERS
             int value=atoi(offers[0].c_str());
             string prefix="1.";            
-            std::string AESKeyName1 = "1.AES.key";
-            std::string offerName1 = "1.AES.data";
+            std::string AESKeyName1 = ".tmp/1.AES.key";
+            std::string offerName1 = ".tmp/1.AES.data";
 
             cipherOfferWithFHE(prefix, value);  // RETRIEVE FHE DATA AND CIPHER OFFER IN FHE
             addAESLayer(prefix, RSAfilename);             // CIPHER AES KEY IN RSA            
@@ -311,7 +305,7 @@ void handler::handle_post(http_request message)
         }
         catch (const std::exception &e)
         {
-            cout << "[ERROR] --> in new offer" << endl;
+            cout << "[ERROR] --> in debug one" << endl;
             std::cerr << e.what() << std::endl;
         }
     }
@@ -322,7 +316,7 @@ void handler::handle_post(http_request message)
 
             string offers[3] = {"1000","62","340"};
             vector<LweSample *> clearedOffers;
-            string RSAfilename="publicKey.key";
+            string RSAfilename=".tmp/publicKey.key";
 
             Json tmp = {};
             //************************************************************//
@@ -333,8 +327,8 @@ void handler::handle_post(http_request message)
             
             int value1=atoi(offers[0].c_str());
             string prefix1="1.";            
-            std::string AESKeyName1 = "1.AES.key";
-            std::string offerName1 = "1.AES.data";
+            std::string AESKeyName1 = ".tmp/1.AES.key";
+            std::string offerName1 = ".tmp/1.AES.data";
 
             cipherOfferWithFHE(prefix1, value1);  // RETRIEVE FHE DATA AND CIPHER OFFER IN FHE
             addAESLayer(prefix1, RSAfilename);             // CIPHER AES KEY IN RSA            
@@ -342,8 +336,8 @@ void handler::handle_post(http_request message)
 
             int value2=atoi(offers[1].c_str());
             string prefix2="2.";            
-            std::string AESKeyName2 = "2.AES.key";
-            std::string offerName2 = "2.AES.data";
+            std::string AESKeyName2 = ".tmp/2.AES.key";
+            std::string offerName2 = ".tmp/2.AES.data";
 
             cipherOfferWithFHE(prefix2, value2);  // RETRIEVE FHE DATA AND CIPHER OFFER IN FHE
             addAESLayer(prefix2, RSAfilename);             // CIPHER AES KEY IN RSA            
@@ -351,8 +345,8 @@ void handler::handle_post(http_request message)
 
             int value3=atoi(offers[2].c_str());
             string prefix3="3.";            
-            std::string AESKeyName3 = "3.AES.key";
-            std::string offerName3 = "3.AES.data";
+            std::string AESKeyName3 = ".tmp/3.AES.key";
+            std::string offerName3 = ".tmp/3.AES.data";
 
             cipherOfferWithFHE(prefix3, value3);  // RETRIEVE FHE DATA AND CIPHER OFFER IN FHE
             addAESLayer(prefix3, RSAfilename);             // CIPHER AES KEY IN RSA            
@@ -372,49 +366,10 @@ void handler::handle_post(http_request message)
             LweSample* cloud_ciphertext3 = utils_decryptOffer(prefix3, AESKeyName3, offerName3, numOffers);
             clearedOffers.push_back(cloud_ciphertext3);
 
-            //************************************************//
-            //******************* debug 
-            //************************************************//
-
-            //reads the cloud key from file
-            FILE* secret_key = fopen("secret.key","rb");
-            TFheGateBootstrappingSecretKeySet* key = new_tfheGateBootstrappingSecretKeySet_fromFile(secret_key);
-            fclose(secret_key);
-
-
-            //decrypt and rebuild the 16-bit plaintext answer
-            int16_t int_answer1 = 0;
-            for (int i=0; i<16; i++) {
-                int ai1 = bootsSymDecrypt(&cloud_ciphertext1[i], key);
-                int_answer1 |= (ai1<<i);
-            }
-            std::cout << "offer 1 was worth: " << int_answer1 << std::endl;
-
-            //decrypt and rebuild the 16-bit plaintext answer
-            int16_t int_answer2 = 0;
-            for (int i=0; i<16; i++) {
-                int ai2 = bootsSymDecrypt(&cloud_ciphertext2[i], key);
-                int_answer2 |= (ai2<<i);
-            }
-            std::cout << "offer 2 was worth: " << int_answer2 << std::endl;
-
-            //decrypt and rebuild the 16-bit plaintext answer
-            int16_t int_answer3 = 0;
-            for (int i=0; i<16; i++) {
-                int ai3 = bootsSymDecrypt(&cloud_ciphertext3[i], key);
-                int_answer3 |= (ai3<<i);
-            }
-            std::cout << "offer 3 was worth: " << int_answer3 << std::endl;
-
-            delete_gate_bootstrapping_secret_keyset(key);
-
-            //************************************************//
-            //************************************************//
-
             std::cout << "[INFO] FHE offer appended (offers size=" << clearedOffers.size() << ")" << endl;
             std::cout << "_______________________________________________________"
                       << "\n";
-            //cout << "[TODO] Compare offers" << endl;
+            cout << "[INFO] Lauching comparison" << endl;
             //  "offers" contains the cipher of all offers,
             //  we need tu use the function of the Comparator class to compare offers and retrieve the best offer.
 
@@ -427,7 +382,7 @@ void handler::handle_post(http_request message)
         }
         catch (const std::exception &e)
         {
-            cout << "[ERROR] --> in new offer" << endl;
+            cout << "[ERROR] --> in debug multi" << endl;
             std::cerr << e.what() << std::endl;
         }
     }

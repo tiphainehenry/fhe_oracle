@@ -19,7 +19,7 @@ namespace std
     public:
         Verif(int offers)
         {
-            FILE *secret_key = fopen("secret.key", "rb");
+            FILE *secret_key = fopen(".tmp/secret.key", "rb");
             key = new_tfheGateBootstrappingSecretKeySet_fromFile(secret_key);
             fclose(secret_key);
             params = key->params;

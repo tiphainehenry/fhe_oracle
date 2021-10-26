@@ -4,7 +4,7 @@
 ./comp.sh
 
 #(alternatively): 
-g++ -std=c++11 main.cpp *.cc src/handler.cpp -o server -lboost_system -lcrypto -lssl -lcpprest -pthread -lipfs-http-client -lcurl -ltfhe-spqlios-fma -lstdc++ -lcrypto++
+g++ -std=c++11 src/*.cc src/handler.cpp -o server -lboost_system -lcrypto -lssl -lcpprest -pthread -lipfs-http-client -lcurl -ltfhe-spqlios-fma -lstdc++ -lcrypto++
 
 ./server
 
@@ -22,4 +22,7 @@ curl -d "a=v" http://localhost:34568/offer?offer=2323
 
 ## Send the ciphered offer with the JSON "test.json"
 curl -v POST  http://localhost:34568/findBestOffer -d @test.json --header "Content-Type: application/json"
+
+## local debug:
+curl -d "a=b"  http://localhost:34568/debugOfferMulti
 
