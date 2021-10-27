@@ -170,18 +170,17 @@ void handler::handle_post(http_request message)
         string offer = queries["offer"];
 
         /// cloud data prefix computation
+        
         std::string prefix = utils_computeNumberOfOffers(message);
 
         /// computation of the new offer (ciphered data and aes key)
-        new_offer(atoi(offer.c_str()), "publicKey.key", prefix);
+        //registerMyOffer(offer, prefix);
 
         /// storage of new offer into ipfs
-        client.FilesAdd(
-            {{"AES.key", ipfs::http::FileUpload::Type::kFileName, ".tmp/" + prefix + "AES.key"},
-             {"AES.data", ipfs::http::FileUpload::Type::kFileName, ".tmp/" + prefix + "AES.data"}},
-            &tmp);
-        // remove("AES.key");
-        // remove("AES.data");
+        //client.FilesAdd(
+        //    {{"AES.key", ipfs::http::FileUpload::Type::kFileName, ".tmp/" + prefix + "AES.key"},
+        //     {"AES.data", ipfs::http::FileUpload::Type::kFileName, ".tmp/" + prefix + "AES.data"}},
+        //    &tmp);
 
         // TODO: add elem to test.json !        
         //std::ifstream ifs("test.json");
@@ -196,94 +195,35 @@ void handler::handle_post(http_request message)
             std::cerr << e.what() << std::endl;
         }
     }
-    else if (message.relative_uri().path() == "/debugOfferOne")
+
+    else if (message.relative_uri().path() == "/debug")
     {
         try{
 
-            string offers[3] = {"10"};
-            vector<LweSample *> clearedOffersOne;
-            string RSAfilename="publicKey.key";
+            print_debug("Launching test with 3 offers");                                     
+            int numOffers = 3; 
+            string offers[numOffers] = {"1000","62","340"};
 
-            Json tmp = {};
-            //************************************************************//
-            //************************************************************//
-            std::cout << "[DEBUG] Test with 1 offer -test" << endl;
+            /// generate offers
+            for (int i = 0; i < numOffers; i++)
+            {
+                registerMyOffer(offers[i], std::to_string(i+1)+".");
+            }
+            print_debug("Registration of FHE offers ok");
 
-            // GENERATE OFFERS
-            string prefix="1.";            
-            std::string AESKeyName1 = ".tmp/1.AES.key";
-            std::string offerName1 = ".tmp/1.AES.data";
-
-            cipherOfferWithFHE(prefix, offers[0]);  // RETRIEVE FHE DATA AND CIPHER OFFER IN FHE
-            addAESLayer(prefix, RSAfilename);             // CIPHER AES KEY IN RSA            
-
-            //************************************************************//
             /// decipher AES layer and store FHE offers
-            int numOffers = 1;
-
-            LweSample* cloud_ciphertext = utils_decryptOffer(prefix, numOffers);
-            clearedOffersOne.push_back(cloud_ciphertext);
-
-            //print_info_3m("FHE offer appended (offers size=", clearedOffersOne.size(), ")")
-            
-            message.reply(status_codes::OK, "OK- debug");
-
-        }
-        catch (const std::exception &e)
-        {
-            cout << "[ERROR] --> in debug one" << endl;
-            std::cerr << e.what() << std::endl;
-        }
-    }
-
-    else if (message.relative_uri().path() == "/debugOfferMulti")
-    {
-        try{
-
-            string offers[3] = {"1000","62","340"};
             vector<LweSample *> clearedOffers;
+            for (int i = 0; i < numOffers; i++)
+            {
+                clearedOffers = utils_decryptOffer(std::to_string(i+1)+".", numOffers, clearedOffers); 
+            }
+            print_debug("Decipher of FHE offers ok (#="+std::to_string(clearedOffers.size())+")");
 
-            Json tmp = {};
-            //************************************************************//
-            //************************************************************//
-            
-            print_debug("Test with 3 offers");
- 
-            string prefix1 = "1.";
-            string prefix2 = "2.";
-            string prefix3 = "3.";
-
-            /// generate offers            
-            registerMyOffer(offers[0], prefix1);
-            registerMyOffer(offers[1], prefix2);
-            registerMyOffer(offers[2], prefix3);
-
-            //************************************************************//
-            int numOffers_debug = sizeof(offers)/sizeof(offers[0]);
-            print_debug(std::to_string(numOffers_debug));
-
-
-            int numOffers = 3;
-
-            /// decipher AES layer and store FHE offers
-            LweSample* cloud_ciphertext1 = utils_decryptOffer(prefix1, numOffers);
-            clearedOffers.push_back(cloud_ciphertext1);
-
-            LweSample* cloud_ciphertext2 = utils_decryptOffer(prefix2, numOffers);
-            clearedOffers.push_back(cloud_ciphertext2);
-
-            LweSample* cloud_ciphertext3 = utils_decryptOffer(prefix3, numOffers);
-            clearedOffers.push_back(cloud_ciphertext3);
-
-            print_debug(std::to_string(clearedOffers.size()) + " FHE offer appended)");
-
-            //************************************************************//
-            //  "clearedOffers" contains the cipher of all offers,
-            //  we need tu use the function of the Comparator class to compare offers and retrieve the best offer.
-
-            print_debug("Lauching comparison"); 
-            
+            //  launch comparison on "clearedOffers" that contains the cipher of all offers,
+            print_debug("Launching comparison");
             utils_compare(clearedOffers, numOffers);
+
+            //  decipher argmax for verification
             utils_decipherArgmax(clearedOffers.size());
 
             message.reply(status_codes::OK, "OK- debug");

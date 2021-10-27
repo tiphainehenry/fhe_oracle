@@ -68,7 +68,7 @@ namespace std
         /***
          *  Decrypt the AES key with the "./publicKey.key"
          * */
-        auto RSADecryption(std::string filename, std::string prefix)
+        void RSADecryption(std::string filename, std::string prefix)
         {
             //cout <<"entering rsa decryption"<< endl;
             CryptoPP::AutoSeededRandomPool rng;
@@ -89,7 +89,7 @@ namespace std
                                                                       new CryptoPP::FileSink(char_arr)) // PK_DecryptorFilter
             );            
             
-            return 'ok';                                                                             // StringSource
+            //return 'ok';                                                                             // StringSource
         }
         /***
          * Get AES key from file

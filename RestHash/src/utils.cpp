@@ -239,7 +239,7 @@ LweSample *utils_cipherInt(int message, TFheGateBootstrappingParameterSet *param
  * 
  * @return FHE offer
  * ***/
-LweSample *utils_decryptOffer(string prefix, int numOffers)
+vector<LweSample *> utils_decryptOffer(string prefix, int numOffers, vector<LweSample *> clearedOffers)
 {
 
     string AESKeyName=".tmp/"+prefix+"AES.key";
@@ -291,7 +291,8 @@ LweSample *utils_decryptOffer(string prefix, int numOffers)
     delete_gate_bootstrapping_secret_keyset(key);
     delete_gate_bootstrapping_cloud_keyset(bk);
 
-    return ciphertext;
+    clearedOffers.push_back(ciphertext);
+    return clearedOffers;
 }
 
 void addAESLayer(std::string prefix, std::string RSAfilename)
@@ -342,7 +343,7 @@ void cipherOfferWithFHE(string prefix, string str_value)
     delete_gate_bootstrapping_parameters(params);
 }
 
-void registerMyOffer(string prefix, string offer){
+void registerMyOffer(string offer, string prefix){
     string RSAfilename=".tmp/publicKey.key";
 
     std::string AESKeyName1 = ".tmp/"+ prefix+"AES.key";

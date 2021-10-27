@@ -23,6 +23,6 @@ curl -d "a=v" http://localhost:34568/offer?offer=2323
 ## Send the ciphered offer with the JSON "test.json"
 curl -v POST  http://localhost:34568/findBestOffer -d @test.json --header "Content-Type: application/json"
 
-## Local debug:
-curl -d "a=b"  http://localhost:34568/debugOfferMulti
+## Local debug on 3 offers:
+curl -d "a=b"  http://localhost:34568/debug
 
