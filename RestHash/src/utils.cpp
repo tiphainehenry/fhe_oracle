@@ -129,16 +129,16 @@ string utils_ipfsToFile(string ipfsAddress, string offerName, ipfs::Client clien
 string utils_computeNumberOfOffers(http_request message)
 {
     std::string prefix = "";
-
     try
     {
         auto tmpbis = message.extract_json().get(); // reading test.json data stored as tmp
+        
         int cnt = 0;
         for (auto it = tmpbis.as_object().cbegin(); it != tmpbis.as_object().cend(); ++it) // for each ciphered offer do:
         {
             cnt = cnt + 1;
         }
-        std::string prefix = std::to_string(cnt + 1) + '.';
+        prefix = to_string(cnt + 1) + '.';
     }
     catch (const std::exception &e)
     {

@@ -81,6 +81,10 @@ void handler::handle_post(http_request message)
     std::cout << "[INFO] Handling post request  (Path:" << message.relative_uri().path() << "|Query:" << message.relative_uri().query() << ")" << endl;
     auto queries = uri::split_query(message.relative_uri().query());
 
+    string path_to_tmp = "/home/vtlr2002/source/HashCompare/RestHash/.tmp/";
+    string path_to_test = "/home/vtlr2002/source/HashCompare/RestHash/";
+
+
     if (message.relative_uri().path() == "/newTender")
     {
         print_info("Creating new tender (generation of FHE and RSA keys and storage to ipfs)");
@@ -98,7 +102,6 @@ void handler::handle_post(http_request message)
                 utils_generateRSAKey(); 
 
                 // ipfs storage
-                string path_to_tmp = "/home/vtlr2002/source/HashCompare/RestHash/.tmp/";
                 string response = store_keys_to_ipfs(path_to_tmp);
                 message.reply(status_codes::OK, response);
             }
@@ -169,24 +172,68 @@ void handler::handle_post(http_request message)
         ipfs::Json tmp;
         string offer = queries["offer"];
 
-        /// cloud data prefix computation
-        
-        std::string prefix = utils_computeNumberOfOffers(message);
-
         /// computation of the new offer (ciphered data and aes key)
-        //registerMyOffer(offer, prefix);
+        
+        // extract stored offers
+        std::string prefix = "";
+
+        auto tmpbis = message.extract_json().get(); // reading test.json data stored as tmp
+        
+        Json tmp_json;
+        int cnt = 0;
+        for (auto it = tmpbis.as_object().cbegin(); it != tmpbis.as_object().cend(); ++it) // for each ciphered offer do:
+            {
+                cnt = cnt + 1;
+                string key = it->second.at(U("key")).as_string();     // fetch key ipfs hash
+                string offer = it->second.at(U("offer")).as_string(); // fetch offer ipfs hash
+                boost::erase_all(key, "\"");                          // clean variables
+                boost::erase_all(offer, "\"");
+                print_debug("offer number"+to_string(cnt));
+                print_debug(key);
+                print_debug(offer);
+                tmp_json[to_string(cnt)]["key"]=key;
+                tmp_json[to_string(cnt)]["offer"]=offer;
+            }
+
+        //file << tmp_json;
+
+
+        prefix = to_string(cnt + 1) + '.';
+
+        //string prefix = utils_computeNumberOfOffers(message);
+        print_debug(prefix);
+        registerMyOffer(offer, prefix);
 
         /// storage of new offer into ipfs
-        //client.FilesAdd(
-        //    {{"AES.key", ipfs::http::FileUpload::Type::kFileName, ".tmp/" + prefix + "AES.key"},
-        //     {"AES.data", ipfs::http::FileUpload::Type::kFileName, ".tmp/" + prefix + "AES.data"}},
-        //    &tmp);
+        client.FilesAdd(
+            {   
+                {prefix +"AES.key", ipfs::http::FileUpload::Type::kFileName, path_to_tmp + prefix + "AES.key"},
+                {prefix +"AES.data", ipfs::http::FileUpload::Type::kFileName, path_to_tmp + prefix + "AES.data"}
+            },
+            &tmp);
 
-        // TODO: add elem to test.json !        
-        //std::ifstream ifs("test.json");
-        //Json j = json::parse(ifs);
+        // append new offer hashes to test.json        
+        
+        string new_key=tmp[0]["hash"].dump();
+        string new_offer=tmp[1]["hash"].dump();
+        boost::erase_all(new_key, "\""); // clean variables
+        boost::erase_all(new_offer, "\"");
 
-        message.reply(status_codes::OK, "OK- Offer created");
+        tmp_json[to_string(cnt+1)]["key"]=new_key;
+        tmp_json[to_string(cnt+1)]["offer"]=new_offer;
+
+        std::ofstream o(path_to_test+"test.json");
+        o << std::setw(4) << tmp_json << std::endl;
+
+        // ipfs output display
+        string keyTypeShort[4] = {
+            " is RSA+AES key hash",
+            " is AES+FHE data hash"
+            };
+        string response;
+        string reply ="OK- Offer created (RSA+AESkeyHash="+tmp[0]["hash"].dump()+"|AES+FHEdataHash="+tmp[1]["hash"].dump()+")";
+
+        message.reply(status_codes::OK, reply.c_str());
 
         }
         catch (const std::exception &e)
