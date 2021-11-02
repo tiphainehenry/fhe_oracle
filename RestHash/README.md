@@ -1,5 +1,8 @@
 #### COMMANDS
 
+#step0: BEFORE compilation:
+-->> in (1) src/utils/utils.cpp and (2) src/utils/url_filenames.json: adapt the pathes to your machine
+
 #step1: launch API server (running on http://127.0.0.1:34568): 
 ./comp.sh
 
@@ -18,7 +21,7 @@ curl -d "a=b"  http://localhost:34568/newTender?Hash=test
 
 # NEW OFFER:
 ## Cipher the offer. The user specifies the value. Here value=2323. The ciphered value is appended to test.json
-curl -d "a=v" http://localhost:34568/offer?offer=2323
+curl -v POST http://localhost:34568/offer?offer=2323 -d @test.json --header "Content-Type: application/json"
 
 ## Send the ciphered offer with the JSON "test.json"
 curl -v POST  http://localhost:34568/findBestOffer -d @test.json --header "Content-Type: application/json"

@@ -1,6 +1,7 @@
 {
-    "path_to_data":"/home/vtlr2002/source/HashCompare/RestHash/tmp/",
-    "ipfs_folder":"from_ipfs/",
+    "fd_testjson":     "/home/vtlr2002/source/HashCompare/RestHash/",
+    "fd_data":  "/home/vtlr2002/source/HashCompare/RestHash/.tmp/",
+    "fd_ipfs":  "/home/vtlr2002/source/HashCompare/RestHash/.tmp/from_ipfs/",
 
     "FHE_sk":"secret.key",
     "FHE_pk":"cloud.key",

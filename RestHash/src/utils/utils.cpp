@@ -33,6 +33,10 @@
 #include "./include/lweparams.h"
 #include "./include/tlwe.h"
 #include "./include/tgsw.h"
+#include <nlohmann/json.hpp>
+
+using Json = nlohmann::json;
+
 
 using namespace std;
 using namespace CryptoPP;
@@ -40,6 +44,8 @@ using namespace std;
 
 using aes_key_t = std::array<byte, CryptoPP::AES::DEFAULT_KEYLENGTH>;
 using aes_iv_t = std::array<byte, CryptoPP::AES::BLOCKSIZE>;
+
+string myCompURLs="/home/vtlr2002/source/HashCompare/RestHash/src/utils/url_filenames.json";
 
 void print_info(string msg)
 {
@@ -54,6 +60,24 @@ void print_error(string msg)
 void print_debug(string msg)
 {
     cout << "[DEBUG] " << msg << endl;
+}
+
+
+string get_path(string query){
+    std::ifstream ifs(myCompURLs);
+    Json jf = Json::parse(ifs);
+    string path= jf[query];
+    return path;
+}
+
+
+string get_filename(string query){
+    std::ifstream ifs(myCompURLs);
+    Json jf = Json::parse(ifs);
+    std::string tmpPath= jf["fd_data"];
+    std::string myQuery = jf[query];
+    std::string concat = tmpPath+myQuery; 
+    return concat;
 }
 
 /***

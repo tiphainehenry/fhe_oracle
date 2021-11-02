@@ -19,7 +19,8 @@ namespace std
     public:
         Verif(int offers)
         {
-            FILE *secret_key = fopen(".tmp/secret.key", "rb");
+            string FHE_sk = get_filename("FHE_sk");
+            FILE *secret_key = fopen(FHE_sk.c_str(), "rb");
             key = new_tfheGateBootstrappingSecretKeySet_fromFile(secret_key);
             fclose(secret_key);
             params = key->params;

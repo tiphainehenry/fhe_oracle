@@ -93,19 +93,23 @@ LweSample *utils_cipherInt(int message, TFheGateBootstrappingParameterSet *param
 void addAESLayer(std::string prefix, std::string RSAfilename)
 {
     //// ROLE:ENDUSER
+    string fd_data = get_path("fd_data");
 
     // GENERATE AES KEY PEER AND CIPHER PRIVATE KEY WITH RSA
-    aes_key_t AESkey = utils_generate_cipher_AESKey(".tmp/" + prefix + "AES.key", RSAfilename);
+    aes_key_t AESkey = utils_generate_cipher_AESKey(fd_data + prefix + "AES.key", RSAfilename);
 
     // GENERATE IV
     aes_iv_t iv{};
     CryptoPP::AutoSeededRandomPool AESrng{};
-    AESrng.GenerateBlock(iv.data(), iv.size());
-    string ivFileName = ".tmp/" + prefix + "newIV.data";
+    AESrng.GenerateBlock(iv.data(), iv.size());    
+    string ivFileName = fd_data + prefix + "newIV.data";
     CryptoPP::ArraySource as(iv.data(), iv.size(), true, new CryptoPP::FileSink(ivFileName.c_str()));
 
     // CIPHER FHE OFFER WITH AES PUBLIC KEY
-    utils_encryptFHEOfferWithAES(AESkey, iv, ".tmp/" + prefix + "cloud.data", ".tmp/" + prefix + "AES.data");
+    utils_encryptFHEOfferWithAES(AESkey, 
+                                 iv, 
+                                 fd_data + prefix + "cloud.data", 
+                                 fd_data + prefix + "AES.data");
 }
 
 
@@ -115,11 +119,13 @@ void cipherOfferWithFHE(string prefix, string str_value)
 
     int value=atoi(str_value.c_str());
 
-    FILE *params_file = fopen(".tmp/params.metadata", "rb");
+    string FHE_metadata = get_filename("FHE_metadata");
+    FILE *params_file = fopen(FHE_metadata.c_str(), "rb");
     TFheGateBootstrappingParameterSet *params = new_tfheGateBootstrappingParameterSet_fromFile(params_file);
     fclose(params_file);
 
-    FILE *secret_key = fopen(".tmp/secret.key", "rb");
+    string FHE_sk = get_filename("FHE_sk");
+    FILE *secret_key = fopen(FHE_sk.c_str(), "rb");
     TFheGateBootstrappingSecretKeySet *key = new_tfheGateBootstrappingSecretKeySet_fromFile(secret_key);
     fclose(secret_key);
 
@@ -129,7 +135,10 @@ void cipherOfferWithFHE(string prefix, string str_value)
         bootsSymEncrypt(&ciphertext1[i], (value >> i) & 1, key);
     }
 
-    string filename = ".tmp/" + prefix + "cloud.data";
+
+    string fd_data = get_path("fd_data");
+
+    string filename = fd_data + prefix + "cloud.data";
     FILE *cloud_data = fopen(filename.c_str(), "wb");
     for (int i = 0; i < 16; i++)
         export_gate_bootstrapping_ciphertext_toFile(cloud_data, &ciphertext1[i], params);
@@ -143,12 +152,11 @@ void cipherOfferWithFHE(string prefix, string str_value)
 
 void registerMyOffer(string offer, string prefix){
     //// ROLE:ENDUSER
-
-    string RSAfilename=".tmp/publicKey.key";
-
-    std::string AESKeyName1 = ".tmp/"+ prefix+"AES.key";
-    std::string offerName1 = ".tmp/"+prefix+"AES.data";
+    string fd_data = get_path("fd_data");
+    std::string AESKeyName1 = fd_data+ prefix+"AES.key";
+    std::string offerName1 = fd_data+prefix+"AES.data";
+    string RSA_pk= get_filename("RSA_pk");
 
     cipherOfferWithFHE(prefix, offer);  // RETRIEVE FHE DATA AND CIPHER OFFER IN FHE
-    addAESLayer(prefix, RSAfilename);             // CIPHER AES KEY IN RSA            
+    addAESLayer(prefix, RSA_pk);             // CIPHER AES KEY IN RSA            
 }

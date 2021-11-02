@@ -61,7 +61,8 @@ void generate_fhe_params_and_keyset()
     const int minimum_lambda = 110;
     TFheGateBootstrappingParameterSet *params = new_default_gate_bootstrapping_parameters(minimum_lambda);
 
-    FILE *params_file = fopen(".tmp/params.metadata", "wb"); // export the parameter to file for later use
+    string FHE_metadata = get_filename("FHE_metadata");
+    FILE *params_file = fopen(FHE_metadata.c_str(), "wb"); // export the parameter to file for later use
     export_tfheGateBootstrappingParameterSet_toFile(params_file, params);
     fclose(params_file);
 
@@ -71,12 +72,14 @@ void generate_fhe_params_and_keyset()
     TFheGateBootstrappingSecretKeySet *key = new_random_gate_bootstrapping_secret_keyset(params);
 
     //export the secret key to file for later use
-    FILE *secret_key = fopen(".tmp/secret.key", "wb");
+    string FHE_sk = get_filename("FHE_sk");
+    FILE *secret_key = fopen(FHE_sk.c_str(), "wb");
     export_tfheGateBootstrappingSecretKeySet_toFile(secret_key, key);
     fclose(secret_key);
 
     //export the cloud key to a file (for the cloud)
-    FILE *cloud_key = fopen(".tmp/cloud.key", "wb");
+    string FHE_pk = get_filename("FHE_pk");
+    FILE *cloud_key = fopen(FHE_pk.c_str(), "wb");
     export_tfheGateBootstrappingCloudKeySet_toFile(cloud_key, &key->cloud);
     fclose(cloud_key);
 
@@ -98,7 +101,8 @@ string utils_decipherArgmax(int offerNbr)
 
     std::Verif verifz = std::Verif(offerNbr);
     
-    return verifz.decrypt(".tmp/answer.data"); 
+    string cleared_data = get_filename("cleared_data");
+    return verifz.decrypt(cleared_data.c_str()); 
 }
 ////***********************************////
 ////***********************************////

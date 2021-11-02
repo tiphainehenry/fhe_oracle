@@ -5,8 +5,6 @@
 #include <sstream>
 #include <stdexcept>
 #include "../include/handler.h"
-//#include "../RSAToTFHE.cc"
-//#include "../Cloud.cc"
 #include "utils/utils.cpp"
 
 #include "f_EndUser.cpp"
@@ -14,7 +12,6 @@
 #include "f_Oracle.cpp"
 
 // #include "../ParserData.cc"
-
 using Json = nlohmann::json;
 
 handler::handler()
@@ -84,8 +81,9 @@ void handler::handle_post(http_request message)
     std::cout << "[INFO] Handling post request  (Path:" << message.relative_uri().path() << "|Query:" << message.relative_uri().query() << ")" << endl;
     auto queries = uri::split_query(message.relative_uri().query());
 
-    string path_to_tmp = "/home/vtlr2002/source/HashCompare/RestHash/.tmp/";
-    string path_to_test = "/home/vtlr2002/source/HashCompare/RestHash/";
+    string path_to_tmp = get_path("fd_data");
+    string path_to_ipfs_folder=get_path("fd_ipfs");
+    string path_to_test = get_path("fd_testjson");
 
     if (message.relative_uri().path() == "/newTender")
     {
@@ -150,8 +148,9 @@ void handler::handle_post(http_request message)
                 std::cout << "> OFFER: " << offer << endl;
 
                 // Retrieve key and offer IPFS data and save it locally
-                std::string keyFileName = utils_ipfsToFile(key, ".tmp/from_ipfs/"+it->first, client, "AES.key");
-                std::string offerFileName = utils_ipfsToFile(offer, ".tmp/from_ipfs/"+it->first, client, "AES.data");
+                
+                std::string keyFileName = utils_ipfsToFile(key, path_to_ipfs_folder+it->first, client, "AES.key");
+                std::string offerFileName = utils_ipfsToFile(offer, path_to_ipfs_folder+it->first, client, "AES.data");
 
                 print_info("Offer IPFS data succesfully retrieved (AES key+ AES/FHE ciphered offer)");
 
@@ -185,12 +184,15 @@ void handler::handle_post(http_request message)
             ipfs::Json tmp;
 
             string offer = queries["offer"];
+
             string prefix = "";
             Json tmp_json;
 
             // extract stored offers
 
             auto tmpbis = message.extract_json().get(); // reading test.json data stored as tmp
+
+            cout<<tmpbis;
 
             int cnt = 0;
             for (auto it = tmpbis.as_object().cbegin(); it != tmpbis.as_object().cend(); ++it) // for each ciphered offer do:
@@ -214,8 +216,8 @@ void handler::handle_post(http_request message)
                 &tmp);
 
             // append new offer hashes to test.json
-            string new_key = tmp[0]["hash"].dump();
-            string new_offer = tmp[1]["hash"].dump();
+            string new_key = tmp[1]["hash"].dump();
+            string new_offer = tmp[0]["hash"].dump();
             boost::erase_all(new_key, "\""); // clean variables
             boost::erase_all(new_offer, "\"");
 
@@ -246,7 +248,6 @@ void handler::handle_post(http_request message)
     {
         try
         {
-
             print_debug("Launching test with 3 offers");
             int numOffers = 3;
             string offers[numOffers] = {"1000", "62", "340"};

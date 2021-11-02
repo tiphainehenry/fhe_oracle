@@ -5,6 +5,7 @@
 #include <cryptopp/aes.h>
 #include <cryptopp/rsa.h>
 #include <cryptopp/filters.h>
+
 #include <ctime>
 #include <fstream>
 #include <iomanip>
@@ -15,8 +16,10 @@
 #include <stdexcept>
 #include <stdio.h>
 #include <string>
+
 #include <tfhe/tfhe.h>
 #include <tfhe/tfhe_io.h>
+
 #include <time.h>
 
 #include "../include/handler.h"
@@ -29,11 +32,8 @@ using namespace std;
 using aes_key_t = std::array<byte, CryptoPP::AES::DEFAULT_KEYLENGTH>;
 using aes_iv_t = std::array<byte, CryptoPP::AES::BLOCKSIZE>;
 
-using namespace CryptoPP;
-using namespace std;
 
-using aes_key_t = std::array<byte, CryptoPP::AES::DEFAULT_KEYLENGTH>;
-using aes_iv_t = std::array<byte, CryptoPP::AES::BLOCKSIZE>;
+
 
 string store_rsa_keys_to_ipfs(string path_to_tmp)
 {
@@ -75,10 +75,11 @@ void decrypt(const aes_key_t &key, const aes_iv_t &iv,
          * */
 void RSADecryption(std::string filename, std::string prefix)
 {
+
     //cout <<"entering rsa decryption"<< endl;
     CryptoPP::AutoSeededRandomPool rng;
     CryptoPP::RSAES_OAEP_SHA_Decryptor dec;
-    dec.AccessKey().BERDecode(CryptoPP::FileSource(".tmp/privateKey.key", true).Ref());
+    dec.AccessKey().BERDecode(CryptoPP::FileSource(get_filename("RSA_sk").c_str(), true).Ref());
 
     // compute prefix and generate AES2.key filename
     std::string AES2Prefix = filename;
@@ -116,8 +117,11 @@ CryptoPP::RSA::PublicKey utils_generateRSAKey()
     CryptoPP::RSA::PrivateKey privateKey(params);
     CryptoPP::RSA::PublicKey publicKey(params);
 
-    publicKey.DEREncode(FileSink(".tmp/publicKey.key", true).Ref());
-    privateKey.DEREncode(FileSink(".tmp/privateKey.key", true).Ref());
+    string RSA_pk = get_filename("RSA_pk");
+    publicKey.DEREncode(FileSink(RSA_pk.c_str(), true).Ref());
+
+    string RSA_sk = get_filename("RSA_sk");
+    privateKey.DEREncode(FileSink(RSA_sk.c_str(), true).Ref());
     return publicKey;
 }
 
@@ -134,31 +138,37 @@ vector<LweSample *> utils_decryptOffer(string prefix, int numOffers, vector<LweS
 {
     /// ROLE: ORACLE
 
-    string AESKeyName = ".tmp/" + prefix + "AES.key";
-    string offerName = ".tmp/" + prefix + "AES.data";
+    string fd_data = get_path("fd_data");
+
+    string AESKeyName = fd_data + prefix + "AES.key";
+    string offerName = fd_data + prefix + "AES.data";
 
     // load params and keys
-    FILE *params_file = fopen(".tmp/params.metadata", "rb");
+    string FHE_metadata = get_filename("FHE_metadata");
+    FILE *params_file = fopen(FHE_metadata.c_str(), "rb");
     TFheGateBootstrappingParameterSet *params = new_tfheGateBootstrappingParameterSet_fromFile(params_file);
     fclose(params_file);
 
-    FILE *secret_key = fopen(".tmp/secret.key", "rb");
+
+    string FHE_sk = get_filename("FHE_sk");
+    FILE *secret_key = fopen(FHE_sk.c_str(), "rb");
     TFheGateBootstrappingSecretKeySet *key = new_tfheGateBootstrappingSecretKeySet_fromFile(secret_key);
     fclose(secret_key);
 
-    FILE *cloud_key = fopen(".tmp/cloud.key", "rb"); //reads the cloud key from file
+    string FHE_pk = get_filename("FHE_pk");
+    FILE *cloud_key = fopen(FHE_pk.c_str(), "rb"); //reads the cloud key from file
     TFheGateBootstrappingCloudKeySet *bk = new_tfheGateBootstrappingCloudKeySet_fromFile(cloud_key);
     fclose(cloud_key);
     const TFheGateBootstrappingParameterSet *cloud_params = bk->params; // the params are inside the key
 
     /// decipher AES layer and store FHE offers
     aes_iv_t iv_decrypt{};
-    string ivFileName = ".tmp/" + prefix + "newIV.data";
+    string ivFileName = fd_data + prefix + "newIV.data";
     CryptoPP::FileSource fs(ivFileName.c_str(), true, new CryptoPP::ArraySink(iv_decrypt.data(), iv_decrypt.size()));
 
     std::string cloudPrefix = offerName;
     boost::erase_all(cloudPrefix, "offer");
-    string cloudData = ".tmp/" + cloudPrefix + "cloud.data";
+    string cloudData = fd_data + cloudPrefix + "cloud.data";
 
     //Comparator cloud = Comparator(cloudData, ".tmp/cloud.key", numOffers, utils_cipherInt(0, params, key), utils_cipherInt(10, params, key));
 
@@ -201,31 +211,36 @@ vector<LweSample *> utils_decryptOffer_withIPFS(string prefix, int numOffers, ve
 {
     //// ROLE:ORACLE
 
-    string AESKeyName = ".tmp/from_ipfs/" + prefix + "AES.key";
-    string offerName = ".tmp/from_ipfs/" + prefix + "AES.data";
+    string AESKeyName = get_path("fd_ipfs") + prefix + "AES.key";
+    string offerName = get_path("fd_ipfs") + prefix + "AES.data";
 
     // load params and keys
-    FILE *params_file = fopen(".tmp/params.metadata", "rb");
+    string FHE_metadata = get_filename("FHE_metadata");
+    FILE *params_file = fopen(FHE_metadata.c_str(), "rb");
     TFheGateBootstrappingParameterSet *params = new_tfheGateBootstrappingParameterSet_fromFile(params_file);
     fclose(params_file);
 
-    FILE *secret_key = fopen(".tmp/secret.key", "rb");
+    string FHE_sk = get_filename("FHE_sk");
+    FILE *secret_key = fopen(FHE_sk.c_str(), "rb");
     TFheGateBootstrappingSecretKeySet *key = new_tfheGateBootstrappingSecretKeySet_fromFile(secret_key);
     fclose(secret_key);
 
-    FILE *cloud_key = fopen(".tmp/cloud.key", "rb"); //reads the cloud key from file
+    string FHE_pk = get_filename("FHE_pk");
+    FILE *cloud_key = fopen(FHE_pk.c_str(), "rb"); //reads the cloud key from file
     TFheGateBootstrappingCloudKeySet *bk = new_tfheGateBootstrappingCloudKeySet_fromFile(cloud_key);
     fclose(cloud_key);
     const TFheGateBootstrappingParameterSet *cloud_params = bk->params; // the params are inside the key
 
     /// decipher AES layer and store FHE offers
-    aes_iv_t iv_decrypt{};
-    string ivFileName = ".tmp/" + prefix + "newIV.data";
+    string fd_data = get_path("fd_data");
+
+    aes_iv_t iv_decrypt{};    
+    string ivFileName = fd_data + prefix + "newIV.data";
     CryptoPP::FileSource fs(ivFileName.c_str(), true, new CryptoPP::ArraySink(iv_decrypt.data(), iv_decrypt.size()));
 
     std::string cloudPrefix = offerName;
     boost::erase_all(cloudPrefix, "offer");
-    string cloudData = ".tmp/" + cloudPrefix + "cloud.data";
+    string cloudData = fd_data + cloudPrefix + "cloud.data";
 
     //Comparator cloud = Comparator(cloudData, ".tmp/cloud.key", numOffers, utils_cipherInt(0, params, key), utils_cipherInt(10, params, key));
 
@@ -273,7 +288,8 @@ LweSample *addition(const LweSample *a, const LweSample *b, const TFheGateBootst
     LweSample *tt = new_gate_bootstrapping_ciphertext_array(16, bk->params);
     full_adder(res, a, b, 16, bk);
 
-    FILE *answer_data = fopen(".tmp/answer.data", "wb");
+    string cleared_data = get_filename("cleared_data");
+    FILE *answer_data = fopen(cleared_data.c_str(), "wb");
     for (int i = 0; i < 16; i++)
     {
         export_gate_bootstrapping_ciphertext_toFile(answer_data, &res[i], bk->params);
@@ -314,7 +330,8 @@ void utils_getMinimum(LweSample *c_zero, LweSample *c_ten,
 {
     //// ROLE:ORACLE
 
-    FILE *cloud_key = fopen(".tmp/cloud.key", "rb");
+    string FHE_pk = get_filename("FHE_pk");
+    FILE *cloud_key = fopen(FHE_pk.c_str(), "rb");
     TFheGateBootstrappingCloudKeySet *bk = new_tfheGateBootstrappingCloudKeySet_fromFile(cloud_key);
     fclose(cloud_key);
 
@@ -340,7 +357,8 @@ void utils_getMinimum(LweSample *c_zero, LweSample *c_ten,
     }
 
     // EXPORT ARGMAX (COMPARISON OUTPUTS)
-    FILE *cloud_data = fopen(".tmp/answer.data", "wb");
+    string cleared_data = get_filename("cleared_data");
+    FILE *cloud_data = fopen(cleared_data.c_str(), "wb");
     for (size_t j = 0; j < cipheredArgmaxVector.size(); j++)
     {
         for (int i = 0; i < 16; i++)
@@ -365,11 +383,13 @@ void utils_compare(vector<LweSample *> offers, int offerNbr)
 
     //// ROLE:ORACLE
 
-    FILE *params_file = fopen(".tmp/params.metadata", "rb");
+    string FHE_metadata = get_filename("FHE_metadata");
+    FILE *params_file = fopen(FHE_metadata.c_str(), "rb");
     TFheGateBootstrappingParameterSet *params = new_tfheGateBootstrappingParameterSet_fromFile(params_file);
     fclose(params_file);
 
-    FILE *secret_key = fopen(".tmp/secret.key", "rb");
+    string FHE_sk = get_filename("FHE_sk");
+    FILE *secret_key = fopen(FHE_sk.c_str(), "rb");
     TFheGateBootstrappingSecretKeySet *key = new_tfheGateBootstrappingSecretKeySet_fromFile(secret_key);
     fclose(secret_key);
 
