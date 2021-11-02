@@ -5,10 +5,21 @@
 #include <cryptopp/osrng.h>
 #include <cryptopp/aes.h>
 #include <cryptopp/filters.h>
+#include <cryptopp/rsa.h>
 #include <tfhe/tfhe_io.h>
 #include <stdio.h>
 #include <time.h>
 #include "./test-addition-boot.cc"
+#include "utils/utils.cpp"
+
+
+
+using namespace CryptoPP;
+
+
+using aes_key_t = std::array<byte, CryptoPP::AES::DEFAULT_KEYLENGTH>;
+using aes_iv_t = std::array<byte, CryptoPP::AES::BLOCKSIZE>;
+
 
 namespace std
 {

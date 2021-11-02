@@ -3,7 +3,6 @@
 
 #include <ipfs/client.h>
 #include "include/stdafx.h"
-#include "include/hascompare.h"
 #include "include/handler.h"
 
 using namespace std;

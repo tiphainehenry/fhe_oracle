@@ -1,0 +1,14 @@
+{
+    "path_to_data":"/home/vtlr2002/source/HashCompare/RestHash/tmp/",
+    "ipfs_folder":"from_ipfs/",
+
+    "FHE_sk":"secret.key",
+    "FHE_pk":"cloud.key",
+    "FHE_metadata":"params.metadata",
+
+    "cleared_data":"answer.data",
+
+    "RSA_sk":"privateKey.key",
+    "RSA_pk":"publicKey.key"
+
+}

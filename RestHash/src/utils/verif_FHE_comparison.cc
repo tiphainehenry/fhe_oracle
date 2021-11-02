@@ -3,7 +3,7 @@
 #include <tfhe/tfhe_io.h>
 #include <stdio.h>
 #include <time.h>
-
+#include<algorithm>
 namespace std
 {
     class Verif
@@ -34,7 +34,7 @@ namespace std
         {
         }
 
-        void decrypt(string filename)
+        string decrypt(string filename)
         {
 
             FILE *answer_data = fopen(filename.c_str(), "rb");
@@ -55,6 +55,8 @@ namespace std
                 intAnswers.push_back(int_answer);
             }
             fclose(answer_data);
+
+
             std::cout << " Maxed clear Vector" << std::endl;
             for (size_t i = 0; i < intAnswers.size(); i++)
             {
@@ -62,6 +64,11 @@ namespace std
             }
             cout << " |" << endl;
             printf("Verification complete\n");
+
+            std::vector<int>::iterator max = max_element(intAnswers.begin(), intAnswers.end()); 
+            int argmaxVal = std::distance(intAnswers.begin(), max); // absolute index of max
+
+            return to_string(argmaxVal);
         }
     };
 }
