@@ -1,13 +1,12 @@
-This repo comprises the code used to generate an API that allows:
+RestHash
+========
+This repo comprises the code used to generate a REST API that allows:
 - tender generation
 - RSA, FHE, and AES key initialization 
 - the generation of ciphered offers (AES, RSA, and FHE combination)
 - the comparison of ciphered offers. 
 Code is written in CPP. 
 
-RestHash
-========
-Rest API using Hashcompare
 
 Install
 -------
@@ -17,7 +16,7 @@ Requirements:
 
 * [CRYPTOpp](https://www.cryptopp.com/wiki/Linux#Distribution_Package -- an issue may occur with ++ instead of pp)
 
-* [IPFS](https://github.com/vasild/cpp-ipfs-http-client)
+* [IPFS](https://github.com/vasild/cpp-ipfs-http-client) (only if IPFS config is set to local)
 
 * [CPPRestSDK](https://github.com/microsoft/cpprestsdk/wiki/How-to-build-for-Linux)
 
@@ -25,54 +24,44 @@ Requirements:
 
 * [boost] (https://www.boost.org/doc/libs/1_61_0/more/getting_started/unix-variants.html)
 
-Compiling
----------
-    $./comp.sh
+Compiling and launching the API server
+--------------------------------------
 
-Smart Contract
-====
-[Work in progress]
----
+Adapt API configuration: 
+* IPFS: 
+    * set ipfs configuration in RestHash/src/utils/url_filenames.json: ipfs_config can be "local" or "infura".
+    * If local config: launch ipfs daemon (running on http://localhost:5001) with the command `ipfs daemon`.
+* Paths: 
+    * Adapt the pathes to your machine in (1) src/utils/utils.cpp and (2) src/utils/url_filenames.json: 
 
-* Oracle.sol
-    - oracle using provable to access to a public API and stocking the value
-* TenderManager.sol
-    - Smart contract managing Tenders and offers. each struct contain the IPFS link to their respectives data.
-
-Usage
----
-
-Compile and test via [Remix](https://remix.ethereum.org/#version=soljson-v0.5.16+commit.9c3226ce.js&optimize=false&evmVersion=null&gist=8a28f5ee239b7815b935d883f1239904&runs=200).
-
-
-# Commands
-
-### step0: BEFORE compilation:
--->> in (1) src/utils/utils.cpp and (2) src/utils/url_filenames.json: adapt the pathes to your machine
-
-### step1: launch API server (running on http://127.0.0.1:34568): 
-`./comp.sh`
+Compile and launch the server: 
+* `./comp.sh`
+* The server runs on http://127.0.0.1:34568.
 
 (alternatively):
-
 `g++ -std=c++11 src/*.cc src/handler.cpp -o server -lboost_system -lcrypto -lssl -lcpprest -pthread -lipfs-http-client -lcurl -ltfhe-spqlios-fma -lstdc++ -lcrypto++
+
 ./server`
 
-### step2: IPFS:
-(1) set ipfs configuration in RestHash/src/utils/url_filenames.json: ipfs_config can be "local" or "infura".
-(2) if ipfs_config is set to "local", then, before launching the API, launch ipfs daemon (running on http://localhost:5001) with the command "ipfs daemon.
+REST Commands: Curl requests
+----------------------------
+__Tender creation__ `curl -d "a=b"  http://localhost:34568/newTender?Hash=test`
 
-### step3: Curl requests:
-#### Creation of a new tender where Hash is the value of the new IPFS Hash where the offer will be stored. (for demo, we suppose hash=test)  >> generation of FHE and RSA keys 
-`curl -d "a=b"  http://localhost:34568/newTender?Hash=test`
+* Creation of a new tender where Hash is the value of the new IPFS Hash where the offer will be stored. (for demo, we suppose hash=test)
+* generation of FHE and RSA keys 
 
-#### NEW OFFER:
-#### 1) Cipher the offer. The user specifies the value. Here value=2323. The ciphered value is appended to test.json >> generation of own AES key
-`curl -v POST http://localhost:34568/offer?offer=2323 -d @test.json --header "Content-Type: application/json"`
+__Register a new offer__ `curl -v POST http://localhost:34568/offer?offer=2323 -d @test.json --header "Content-Type: application/json"`
 
-#### 2) Send the ciphered offer with the JSON "test.json"
-`curl -v POST  http://localhost:34568/findBestOffer -d @test.json --header "Content-Type: application/json"`
+The user specifies the value (eg 2323) and the tender name (eg test.json).
 
-#### 3) Local debug on X offers:
-`curl -d "a=b"  http://localhost:34568/debug/n=X`
+* Generation of own AES key
+* Cipher the offer with FHE and AES.
+* Cipher the AES key with RSA 
+* The ciphered value is appended to test.json
+
+__Launch a comparison__ `curl -v POST  http://localhost:34568/findBestOffer -d @test.json --header "Content-Type: application/json"`
+
+* Send the ciphered offer with the JSON "test.json"
+
+__Local debug on X offers__  `curl -d "a=b"  http://localhost:34568/debug/n=X`
 
