@@ -14,16 +14,11 @@ Install
 Requirements:
 
 * [TFHE](http://tfhe.github.io/tfhe/installation.html)
-
-* [CRYPTOpp](https://www.cryptopp.com/wiki/Linux#Distribution_Package -- an issue may occur with ++ instead of pp)
-
+* [CRYPTOpp](https://www.cryptopp.com/wiki/Linux#Distribution_Package) - NB: an issue may occur with ++ instead of pp
 * [IPFS](https://github.com/vasild/cpp-ipfs-http-client) (only if IPFS config is set to local)
-
 * [CPPRestSDK](https://github.com/microsoft/cpprestsdk/wiki/How-to-build-for-Linux)
-
+* [boost](https://www.boost.org/doc/libs/1_61_0/more/getting_started/unix-variants.html)
 * [Nlohmann]
-
-* [boost] (https://www.boost.org/doc/libs/1_61_0/more/getting_started/unix-variants.html)
 
 Compiling and launching the API server
 --------------------------------------
@@ -38,11 +33,9 @@ Adapt API configuration:
 Compile and launch the server: 
 * `./comp.sh`
 * The server runs on http://127.0.0.1:34568.
-
-(alternatively):
-`g++ -std=c++11 src/*.cc src/handler.cpp -o server -lboost_system -lcrypto -lssl -lcpprest -pthread -lipfs-http-client -lcurl -ltfhe-spqlios-fma -lstdc++ -lcrypto++
-
-./server`
+* Alternative manual compilation:
+   * `g++ -std=c++11 src/*.cc src/handler.cpp -o server -lboost_system -lcrypto -lssl -lcpprest -pthread -lipfs-http-client -lcurl -ltfhe-spqlios-fma -lstdc++ -lcrypto++`
+   * `./server`
 
 REST Commands: Curl requests
 ----------------------------
