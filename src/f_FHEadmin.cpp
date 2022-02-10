@@ -37,13 +37,7 @@ string store_fhe_keys_to_ipfs(string path_to_tmp)
     ipfs::Client client("ipfs.infura.io", 5001, "20s", "https://");
     if (ipfsConfig == "local") {        
         ipfs::Client client("localhost", 5001);
-        std::cout<< "IPFS config = local"<<std::endl;
-    } else if (ipfsConfig == "infura"){
-    
-        std::cout<< "IPFS config = infura"<<std::endl;
-    }else{
-        std::cout<< "IPFS config not recognized"<<std::endl;
-    }
+    } 
 
     cout << "IPFS key storage test" << endl;
     cout << path_to_tmp << endl;

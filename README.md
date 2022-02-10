@@ -1,65 +1,63 @@
-HashCompare
-===========
-this repo contain the Hashcompare prototype, the RestAPI using hashcompare and the SmartContract used to link the API to the blockchain.
-
-Hashcompare
-===========
-Prototype taking n parameters encrypt them and then return a vector with the values ordered from the highest to the lowest.
-
-Install
--------
-Requirements:
-
-    * [TFHE] (https://tfhe.github.io/tfhe/installation.html).
-    * [CRYPTO++] (https://www.cryptopp.com/wiki/Linux#Distribution_Package)
-Compiling
----------
-
-    $ cd Hashcompare
-    $ make
-    $ #or
-    $ ./comp.sh
-    $ # ./comp.sh clean can be used to remove temporary files.
-
-Usage
----
-See /HashCompare/comp.sh
-
 RestHash
 ========
-Rest API using Hashcompare
+This repo comprises the code used to generate a REST API that allows:
+- tender generation
+- RSA, FHE, and AES key initialization 
+- the generation of ciphered offers (AES, RSA, and FHE combination)
+- the comparison of ciphered offers. 
+
+Code is written in CPP. 
+
 
 Install
 -------
 Requirements:
 
 * [TFHE](http://tfhe.github.io/tfhe/installation.html)
-
-* [CRYPTOpp](https://www.cryptopp.com/wiki/Linux#Distribution_Package -- an issue may occur with ++ instead of pp)
-
-* [IPFS](https://github.com/vasild/cpp-ipfs-http-client)
-
+* [CRYPTOpp](https://www.cryptopp.com/wiki/Linux#Distribution_Package) - NB: an issue may occur with ++ instead of pp
+* [IPFS](https://github.com/vasild/cpp-ipfs-http-client) (only if IPFS config is set to local)
 * [CPPRestSDK](https://github.com/microsoft/cpprestsdk/wiki/How-to-build-for-Linux)
-
+* [boost](https://www.boost.org/doc/libs/1_61_0/more/getting_started/unix-variants.html)
 * [Nlohmann]
 
-* [boost] (https://www.boost.org/doc/libs/1_61_0/more/getting_started/unix-variants.html)
+Compiling and launching the API server
+--------------------------------------
 
-Compiling
----------
-    $./comp.sh
+IPFS configuration: 
+* Case Infura: 
+    * set ipfs_config to "infura" in src/utils/url_filenames.json.
+* Case Local:
+    * set ipfs_config to "local" in src/utils/url_filenames.json.
+    * launch `ipfs daemon` (running on http://localhost:5001)
 
-Smart Contract
-====
-[Work in progress]
----
+Compile and launch the server: 
+* To launch the server that runs on http://127.0.0.1:34568, there are two possibilities:
+    * `./comp.sh` 
+    * `./comp.sh clean` for a clean environment: it empties the /tmp folder, removes ciphering keys, and resets the test.json file.
 
-* Oracle.sol
-    - oracle using provable to access to a public API and stocking the value
-* TenderManager.sol
-    - Smart contract managing Tenders and offers. each struct contain the IPFS link to their respectives data.
+* Alternative manual compilation:
+   * `g++ -std=c++11 src/*.cc src/handler.cpp -o server -lboost_system -lcrypto -lssl -lcpprest -pthread -lipfs-http-client -lcurl -ltfhe-spqlios-fma -lstdc++ -lcrypto++`
+   * `./server`
 
-Usage
----
+REST Commands: Curl requests
+----------------------------
+__Tender creation__ `curl -d "a=b"  http://localhost:34568/newTender?Hash=test`
 
-Compile and test via [Remix](https://remix.ethereum.org/#version=soljson-v0.5.16+commit.9c3226ce.js&optimize=false&evmVersion=null&gist=8a28f5ee239b7815b935d883f1239904&runs=200).
+* Creation of a new tender where Hash is the value of the new IPFS Hash where the offer will be stored. (for demo, we suppose hash=test)
+* generation of FHE and RSA keys 
+
+__Register a new offer__ `curl -v POST http://localhost:34568/offer?offer=2323 -d @test.json --header "Content-Type: application/json"`
+
+The user specifies the value (eg 2323) and the tender name (eg test.json).
+
+* Generation of own AES key
+* Cipher the offer with FHE and AES.
+* Cipher the AES key with RSA 
+* The ciphered value is appended to test.json
+
+__Launch a comparison__ `curl -v POST  http://localhost:34568/findBestOffer -d @test.json --header "Content-Type: application/json"`
+
+* Send the ciphered offer with the JSON "test.json"
+
+__Local debug on X offers__  `curl -d "a=b"  http://localhost:34568/debug/n=X`
+

@@ -93,7 +93,7 @@ LweSample *utils_cipherInt(int message, TFheGateBootstrappingParameterSet *param
 void addAESLayer(std::string prefix, std::string RSAfilename)
 {
     //// ROLE:ENDUSER
-    string fd_data = get_path("fd_data");
+    string fd_data = GetCurrentWorkingDir()+"/"+ get_path("fd_data");
 
     // GENERATE AES KEY PEER AND CIPHER PRIVATE KEY WITH RSA
     aes_key_t AESkey = utils_generate_cipher_AESKey(fd_data + prefix + "AES.key", RSAfilename);
@@ -136,7 +136,7 @@ void cipherOfferWithFHE(string prefix, string str_value)
     }
 
 
-    string fd_data = get_path("fd_data");
+    string fd_data = GetCurrentWorkingDir()+"/"+get_path("fd_data");
 
     string filename = fd_data + prefix + "cloud.data";
     FILE *cloud_data = fopen(filename.c_str(), "wb");
@@ -152,7 +152,7 @@ void cipherOfferWithFHE(string prefix, string str_value)
 
 void registerMyOffer(string offer, string prefix){
     //// ROLE:ENDUSER
-    string fd_data = get_path("fd_data");
+    string fd_data = GetCurrentWorkingDir()+"/"+get_path("fd_data");
     std::string AESKeyName1 = fd_data+ prefix+"AES.key";
     std::string offerName1 = fd_data+prefix+"AES.data";
     string RSA_pk= get_filename("RSA_pk");

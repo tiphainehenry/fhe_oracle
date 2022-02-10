@@ -45,7 +45,27 @@ using namespace std;
 using aes_key_t = std::array<byte, CryptoPP::AES::DEFAULT_KEYLENGTH>;
 using aes_iv_t = std::array<byte, CryptoPP::AES::BLOCKSIZE>;
 
-string myCompURLs="/home/vtlr2002/source/HashCompare/RestHash/src/utils/url_filenames.json";
+
+#include <stdio.h>  /* defines FILENAME_MAX */
+// #define WINDOWS  /* uncomment this line to use it for windows.*/ 
+#ifdef WINDOWS
+#include <direct.h>
+#define GetCurrentDir _getcwd
+#else
+#include <unistd.h>
+#define GetCurrentDir getcwd
+#endif
+#include<iostream>
+
+std::string GetCurrentWorkingDir( void ) {
+  char buff[FILENAME_MAX];
+  GetCurrentDir( buff, FILENAME_MAX );
+  std::string current_working_dir(buff);
+  return current_working_dir;
+}
+
+
+string myCompURLs=GetCurrentWorkingDir()+"/src/utils/url_filenames.json";
 
 void print_info(string msg)
 {

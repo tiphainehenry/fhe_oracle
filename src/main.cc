@@ -14,13 +14,34 @@ using Json = nlohmann::json;
 
 std::unique_ptr<handler> g_httpHandler;
 
-std::string url="/home/vtlr2002/source/HashCompare/RestHash/src/utils/url_filenames.json";
+
+#include <stdio.h>  /* defines FILENAME_MAX */
+// #define WINDOWS  /* uncomment this line to use it for windows.*/ 
+#ifdef WINDOWS
+#include <direct.h>
+#define GetCurrentDir _getcwd
+#else
+#include <unistd.h>
+#define GetCurrentDir getcwd
+#endif
+#include<iostream>
+
+std::string main_GetCurrentWorkingDir( void ) {
+  char buff[FILENAME_MAX];
+  GetCurrentDir( buff, FILENAME_MAX );
+  std::string current_working_dir(buff);
+  return current_working_dir;
+}
+
+
+std::string url=main_GetCurrentWorkingDir()+"/src/utils/url_filenames.json";
 string get_ipfs_config_main(){
     std::ifstream ifs(url);
     Json jf = Json::parse(ifs);
     std::string ipfsConfig= jf["ipfs_config"];
     return ipfsConfig;
 }
+
 
 
 void on_initialize(const string_t &address)
@@ -31,7 +52,7 @@ void on_initialize(const string_t &address)
     g_httpHandler = std::unique_ptr<handler>(new handler(addr));
     g_httpHandler->open().wait();
 
-    ucout << utility::string_t(U("Listening for requests at: ")) << addr << std::endl;
+    ucout << utility::string_t(U("[INFO] Listening for requests at: ")) << addr << std::endl;
 
     return;
 }
@@ -56,14 +77,14 @@ int main(int argc, char *argv[])
     ipfs::Client client("ipfs.infura.io", 5001, "20s", "https://");
     if (ipfsConfig == "local") {        
         ipfs::Client client("localhost", 5001);
-        std::cout<< "IPFS config = local"<<std::endl;
+        std::cout<< "[INFO] IPFS config: local"<<std::endl;
 
     } else if(ipfsConfig == "infura"){
         ipfs::Client client("ipfs.infura.io", 5001, "20s", "https://");
-        std::cout<< "IPFS config = infura"<<std::endl;
+        std::cout<< "[INFO] IPFS config: infura"<<std::endl;
     }
     else{
-        std::cout<< "IPFS config not recognized"<<std::endl;
+        std::cout<< "[INFO] IPFS config: not recognized"<<std::endl;
         on_shutdown();
         return 0;
     }

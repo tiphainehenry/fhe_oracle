@@ -10,17 +10,13 @@
 #include "f_FHEadmin.cpp"
 #include "f_Oracle.cpp"
 
-
-
 // #include "../ParserData.cc"
-
 using Json = nlohmann::json;
 
-
 int CreateKeys(){
-    string path_to_tmp = get_path("fd_data");
-    string path_to_ipfs_folder=get_path("fd_ipfs");
-    string path_to_test = get_path("fd_testjson");
+    string path_to_tmp = GetCurrentWorkingDir()+"/"+get_path("fd_data");
+    string path_to_ipfs_folder=GetCurrentWorkingDir()+"/"+get_path("fd_ipfs");
+    string path_to_test = GetCurrentWorkingDir()+"/";
     print_info("Creating new tender (generation of FHE and RSA keys and storage to ipfs)");
 
 

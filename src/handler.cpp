@@ -81,9 +81,9 @@ void handler::handle_post(http_request message)
     std::cout << "[INFO] Handling post request  (Path:" << message.relative_uri().path() << "|Query:" << message.relative_uri().query() << ")" << endl;
     auto queries = uri::split_query(message.relative_uri().query());
 
-    string path_to_tmp = get_path("fd_data");
-    string path_to_ipfs_folder=get_path("fd_ipfs");
-    string path_to_test = get_path("fd_testjson");
+    string path_to_tmp = GetCurrentWorkingDir()+"/"+get_path("fd_data");
+    string path_to_ipfs_folder=GetCurrentWorkingDir()+"/"+get_path("fd_ipfs");
+    string path_to_test = GetCurrentWorkingDir()+"/";
 
     if (message.relative_uri().path() == "/newTender")
     {
@@ -126,15 +126,9 @@ void handler::handle_post(http_request message)
             std::string ipfsConfig = get_ipfs_config();
 
             ipfs::Client client("ipfs.infura.io", 5001, "20s", "https://");
-        
             if (ipfsConfig == "local") {        
                 ipfs::Client client("localhost", 5001);
-                std::cout<< "IPFS config = local"<<std::endl;
-            } else if (ipfsConfig == "infura"){
-                std::cout<< "IPFS config = infura"<<std::endl;
-            }else{
-                std::cout<< "IPFS config not recognized"<<std::endl;
-            }
+            } 
 
             vector<string> offerNames;
             vector<LweSample *> clearedOffers;
@@ -172,7 +166,6 @@ void handler::handle_post(http_request message)
                 /// decipher AES layer and store FHE offers
                 clearedOffers = utils_decryptOffer_withIPFS(std::to_string(i + 1) + ".", numOffers, clearedOffers);
                 i=i+1;
-                print_info("test");
             }
 
             print_info("Decipher of FHE offers ok (#=" + std::to_string(clearedOffers.size()) + ")");

@@ -44,13 +44,7 @@ string store_rsa_keys_to_ipfs(string path_to_tmp)
     ipfs::Client client("ipfs.infura.io", 5001, "20s", "https://");
     if (ipfsConfig == "local") {        
         ipfs::Client client("localhost", 5001);
-        std::cout<< "IPFS config = local"<<std::endl;
-    } else if (ipfsConfig == "infura"){
-    
-        std::cout<< "IPFS config = infura"<<std::endl;
-    }else{
-        std::cout<< "IPFS config not recognized"<<std::endl;
-    }
+    } 
 
     client.FilesAdd({{"publicKey.key", ipfs::http::FileUpload::Type::kFileName, path_to_tmp + "publicKey.key"}},
                     &tmp);
@@ -150,7 +144,7 @@ vector<LweSample *> utils_decryptOffer(string prefix, int numOffers, vector<LweS
 {
     /// ROLE: ORACLE
 
-    string fd_data = get_path("fd_data");
+    string fd_data = GetCurrentWorkingDir()+"/"+get_path("fd_data");
 
     string AESKeyName = fd_data + prefix + "AES.key";
     string offerName = fd_data + prefix + "AES.data";
@@ -223,8 +217,8 @@ vector<LweSample *> utils_decryptOffer_withIPFS(string prefix, int numOffers, ve
 {
     //// ROLE:ORACLE
 
-    string AESKeyName = get_path("fd_ipfs") + prefix + "AES.key";
-    string offerName = get_path("fd_ipfs") + prefix + "AES.data";
+    string AESKeyName = GetCurrentWorkingDir()+"/"+get_path("fd_ipfs") + prefix + "AES.key";
+    string offerName = GetCurrentWorkingDir()+"/"+get_path("fd_ipfs") + prefix + "AES.data";
 
     // load params and keys
     string FHE_metadata = get_filename("FHE_metadata");
@@ -244,7 +238,7 @@ vector<LweSample *> utils_decryptOffer_withIPFS(string prefix, int numOffers, ve
     const TFheGateBootstrappingParameterSet *cloud_params = bk->params; // the params are inside the key
 
     /// decipher AES layer and store FHE offers
-    string fd_data = get_path("fd_data");
+    string fd_data = GetCurrentWorkingDir()+"/"+get_path("fd_data");
 
     aes_iv_t iv_decrypt{};    
     string ivFileName = fd_data + prefix + "newIV.data";
