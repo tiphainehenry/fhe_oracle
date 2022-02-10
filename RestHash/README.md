@@ -1,5 +1,49 @@
-This repo comprises the code used to generate an API that allows the generation and comparison of offers. 
+This repo comprises the code used to generate an API that allows:
+- tender generation
+- RSA, FHE, and AES key initialization 
+- the generation of ciphered offers (AES, RSA, and FHE combination)
+- the comparison of ciphered offers. 
 Code is written in CPP. 
+
+RestHash
+========
+Rest API using Hashcompare
+
+Install
+-------
+Requirements:
+
+* [TFHE](http://tfhe.github.io/tfhe/installation.html)
+
+* [CRYPTOpp](https://www.cryptopp.com/wiki/Linux#Distribution_Package -- an issue may occur with ++ instead of pp)
+
+* [IPFS](https://github.com/vasild/cpp-ipfs-http-client)
+
+* [CPPRestSDK](https://github.com/microsoft/cpprestsdk/wiki/How-to-build-for-Linux)
+
+* [Nlohmann]
+
+* [boost] (https://www.boost.org/doc/libs/1_61_0/more/getting_started/unix-variants.html)
+
+Compiling
+---------
+    $./comp.sh
+
+Smart Contract
+====
+[Work in progress]
+---
+
+* Oracle.sol
+    - oracle using provable to access to a public API and stocking the value
+* TenderManager.sol
+    - Smart contract managing Tenders and offers. each struct contain the IPFS link to their respectives data.
+
+Usage
+---
+
+Compile and test via [Remix](https://remix.ethereum.org/#version=soljson-v0.5.16+commit.9c3226ce.js&optimize=false&evmVersion=null&gist=8a28f5ee239b7815b935d883f1239904&runs=200).
+
 
 # Commands
 
