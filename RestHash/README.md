@@ -5,6 +5,7 @@ This repo comprises the code used to generate a REST API that allows:
 - RSA, FHE, and AES key initialization 
 - the generation of ciphered offers (AES, RSA, and FHE combination)
 - the comparison of ciphered offers. 
+
 Code is written in CPP. 
 
 
