@@ -101,9 +101,11 @@ void handler::handle_post(http_request message)
                 generate_fhe_params_and_keyset();
                 utils_generateRSAKey();
 
-                // ipfs storage
-                string response = store_fhe_keys_to_ipfs(path_to_tmp);
-                response = response+store_rsa_keys_to_ipfs(path_to_tmp);
+                print_info("RSA and FHE keys generated");
+
+                // ipfs storage of the RSA key
+                //string response = store_fhe_keys_to_ipfs(path_to_tmp);
+                string response = store_rsa_keys_to_ipfs(path_to_tmp);
 
                 message.reply(status_codes::OK, "New set of keys generated");
             }
@@ -120,7 +122,20 @@ void handler::handle_post(http_request message)
         {
             print_info("Find best offer");
 
-            ipfs::Client client("localhost", 5001);
+            // Configure IPFS
+            std::string ipfsConfig = get_ipfs_config();
+
+            ipfs::Client client("ipfs.infura.io", 5001, "20s", "https://");
+        
+            if (ipfsConfig == "local") {        
+                ipfs::Client client("localhost", 5001);
+                std::cout<< "IPFS config = local"<<std::endl;
+            } else if (ipfsConfig == "infura"){
+                std::cout<< "IPFS config = infura"<<std::endl;
+            }else{
+                std::cout<< "IPFS config not recognized"<<std::endl;
+            }
+
             vector<string> offerNames;
             vector<LweSample *> clearedOffers;
             auto tmp = message.extract_json().get();                                     // reading test.json data stored as tmp
@@ -157,6 +172,7 @@ void handler::handle_post(http_request message)
                 /// decipher AES layer and store FHE offers
                 clearedOffers = utils_decryptOffer_withIPFS(std::to_string(i + 1) + ".", numOffers, clearedOffers);
                 i=i+1;
+                print_info("test");
             }
 
             print_info("Decipher of FHE offers ok (#=" + std::to_string(clearedOffers.size()) + ")");
@@ -180,8 +196,20 @@ void handler::handle_post(http_request message)
     {
         try
         {
-            ipfs::Client client("localhost", 5001);
             ipfs::Json tmp;
+            // Configure IPFS
+            std::string ipfsConfig_ = get_ipfs_config();
+            ipfs::Client client("ipfs.infura.io", 5001, "20s", "https://");
+
+    
+            if (ipfsConfig_ == "local") {        
+                ipfs::Client client("localhost", 5001);
+                std::cout<< "IPFS config = local"<<std::endl;
+            } else if (ipfsConfig_ == "infura"){
+                std::cout<< "IPFS config = infura"<<std::endl;
+            }else{
+                std::cout<< "IPFS config not recognized"<<std::endl;
+            }
 
             string offer = queries["offer"];
 
@@ -244,13 +272,24 @@ void handler::handle_post(http_request message)
         }
     }
 
-    else if (message.relative_uri().path() == "/debug")
-    {
+    else if (message.relative_uri().path().find("/debug") != string::npos) {
         try
         {
-            print_debug("Launching test with 3 offers");
-            int numOffers = 3;
-            string offers[numOffers] = {"1000", "62", "340"};
+            string num = message.relative_uri().path();
+            num.erase(num.begin() + 0, num.begin() + 9);
+            cout << "After erase(idx) : ";
+            cout << num;
+
+            print_debug("Launching test with " +num+ " offers");
+            int numOffers = stoi(num);            
+            string offers[numOffers];
+            
+            // fill in array randomly
+            for(int i = 0; i < numOffers; i++){
+                string randNum = to_string(rand() % 10); 
+                offers[i] = randNum;              //= {"1000", "62", "340"};
+                cout<<"offer:"<<i <<"="<<randNum<<endl;
+            }
 
             /// generate offers
             for (int i = 0; i < numOffers; i++)

@@ -80,6 +80,13 @@ string get_filename(string query){
     return concat;
 }
 
+string get_ipfs_config(){
+    std::ifstream ifs(myCompURLs);
+    Json jf = Json::parse(ifs);
+    std::string ipfsConfig= jf["ipfs_config"];
+    return ipfsConfig;
+}
+
 /***
  * Get a file from the IPFS server and save it locally
  * @return the name of the file saved

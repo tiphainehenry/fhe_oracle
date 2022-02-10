@@ -1,7 +1,7 @@
 {
     "fd_testjson":     "/home/vtlr2002/source/HashCompare/RestHash/",
-    "fd_data":  "/home/vtlr2002/source/HashCompare/RestHash/.tmp/",
-    "fd_ipfs":  "/home/vtlr2002/source/HashCompare/RestHash/.tmp/from_ipfs/",
+    "fd_data":  "/home/vtlr2002/source/HashCompare/RestHash/tmp/",
+    "fd_ipfs":  "/home/vtlr2002/source/HashCompare/RestHash/tmp/from_ipfs/",
 
     "FHE_sk":"secret.key",
     "FHE_pk":"cloud.key",
@@ -10,6 +10,7 @@
     "cleared_data":"answer.data",
 
     "RSA_sk":"privateKey.key",
-    "RSA_pk":"publicKey.key"
+    "RSA_pk":"publicKey.key",
 
+    "ipfs_config":"infura"
 }

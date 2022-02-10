@@ -32,7 +32,26 @@ string store_fhe_keys_to_ipfs(string path_to_tmp)
 {
     //ROLES: FHE ADMIN AND ORACLE
     ipfs::Json tmp;
-    ipfs::Client client("localhost", 5001);
+    // Configure IPFS
+    std::string ipfsConfig = get_ipfs_config();
+    ipfs::Client client("ipfs.infura.io", 5001, "20s", "https://");
+    if (ipfsConfig == "local") {        
+        ipfs::Client client("localhost", 5001);
+        std::cout<< "IPFS config = local"<<std::endl;
+    } else if (ipfsConfig == "infura"){
+    
+        std::cout<< "IPFS config = infura"<<std::endl;
+    }else{
+        std::cout<< "IPFS config not recognized"<<std::endl;
+    }
+
+    cout << "IPFS key storage test" << endl;
+    cout << path_to_tmp << endl;
+
+    client.FilesAdd({{"secret.key", ipfs::http::FileUpload::Type::kFileName, path_to_tmp + "secret.key"}},
+                    &tmp);
+    cout << "IPFS key storage test passed" << endl;
+
     client.FilesAdd({{"secret.key", ipfs::http::FileUpload::Type::kFileName, path_to_tmp + "secret.key"},
                      {"cloud.key", ipfs::http::FileUpload::Type::kFileName, path_to_tmp + "cloud.key"},
                      {"params.metadata", ipfs::http::FileUpload::Type::kFileName, path_to_tmp + "params.metadata"}},

@@ -39,7 +39,19 @@ string store_rsa_keys_to_ipfs(string path_to_tmp)
 {
     //ROLES: FHE ADMIN AND ORACLE
     ipfs::Json tmp;
-    ipfs::Client client("localhost", 5001);
+    // Configure IPFS
+    std::string ipfsConfig = get_ipfs_config();
+    ipfs::Client client("ipfs.infura.io", 5001, "20s", "https://");
+    if (ipfsConfig == "local") {        
+        ipfs::Client client("localhost", 5001);
+        std::cout<< "IPFS config = local"<<std::endl;
+    } else if (ipfsConfig == "infura"){
+    
+        std::cout<< "IPFS config = infura"<<std::endl;
+    }else{
+        std::cout<< "IPFS config not recognized"<<std::endl;
+    }
+
     client.FilesAdd({{"publicKey.key", ipfs::http::FileUpload::Type::kFileName, path_to_tmp + "publicKey.key"}},
                     &tmp);
 
@@ -170,7 +182,7 @@ vector<LweSample *> utils_decryptOffer(string prefix, int numOffers, vector<LweS
     boost::erase_all(cloudPrefix, "offer");
     string cloudData = fd_data + cloudPrefix + "cloud.data";
 
-    //Comparator cloud = Comparator(cloudData, ".tmp/cloud.key", numOffers, utils_cipherInt(0, params, key), utils_cipherInt(10, params, key));
+    //Comparator cloud = Comparator(cloudData, "tmp/cloud.key", numOffers, utils_cipherInt(0, params, key), utils_cipherInt(10, params, key));
 
     // decipher and fetch AES key
     RSADecryption(AESKeyName, cloudPrefix);
@@ -242,7 +254,7 @@ vector<LweSample *> utils_decryptOffer_withIPFS(string prefix, int numOffers, ve
     boost::erase_all(cloudPrefix, "offer");
     string cloudData = fd_data + cloudPrefix + "cloud.data";
 
-    //Comparator cloud = Comparator(cloudData, ".tmp/cloud.key", numOffers, utils_cipherInt(0, params, key), utils_cipherInt(10, params, key));
+    //Comparator cloud = Comparator(cloudData, "tmp/cloud.key", numOffers, utils_cipherInt(0, params, key), utils_cipherInt(10, params, key));
 
     // decipher and fetch AES key
     RSADecryption(AESKeyName, cloudPrefix);
