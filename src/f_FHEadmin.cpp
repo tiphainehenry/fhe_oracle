@@ -104,10 +104,6 @@ void generate_fhe_params_and_keyset()
 ////***********************************////
 ////*********** ASK VERIF *************////
 
-
-
-
-
 string utils_decipherArgmax(int offerNbr)
 {
     //// ROLE:FHE ADMIN

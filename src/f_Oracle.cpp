@@ -32,9 +32,6 @@ using namespace std;
 using aes_key_t = std::array<byte, CryptoPP::AES::DEFAULT_KEYLENGTH>;
 using aes_iv_t = std::array<byte, CryptoPP::AES::BLOCKSIZE>;
 
-
-
-
 string store_rsa_keys_to_ipfs(string path_to_tmp)
 {
     //ROLES: FHE ADMIN AND ORACLE

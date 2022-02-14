@@ -64,7 +64,6 @@ std::string GetCurrentWorkingDir( void ) {
   return current_working_dir;
 }
 
-
 string myCompURLs=GetCurrentWorkingDir()+"/src/utils/url_filenames.json";
 
 void print_info(string msg)
@@ -90,7 +89,6 @@ string get_path(string query){
     return path;
 }
 
-
 string get_filename(string query){
     std::ifstream ifs(myCompURLs);
     Json jf = Json::parse(ifs);
@@ -114,7 +112,6 @@ string get_ipfs_config(){
  * **/
 string utils_ipfsToFile(string ipfsAddress, string offerName, ipfs::Client client, string fileType)
 {
-
     try
     {
         ofstream file;

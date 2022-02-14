@@ -131,9 +131,9 @@ void handler::handle_post(http_request message)
             } 
 
             vector<string> offerNames;
-            vector<LweSample *> clearedOffers;
+            vector<LweSample *> clearedOffers;		    
             auto tmp = message.extract_json().get();                                     // reading test.json data stored as tmp
-
+            //print_debug("test2");
             int numOffers =0;
             for (auto it = tmp.as_object().cbegin(); it != tmp.as_object().cend(); ++it) // for each ciphered offer do:
             {
@@ -193,16 +193,10 @@ void handler::handle_post(http_request message)
             // Configure IPFS
             std::string ipfsConfig_ = get_ipfs_config();
             ipfs::Client client("ipfs.infura.io", 5001, "20s", "https://");
-
     
             if (ipfsConfig_ == "local") {        
                 ipfs::Client client("localhost", 5001);
-                std::cout<< "IPFS config = local"<<std::endl;
-            } else if (ipfsConfig_ == "infura"){
-                std::cout<< "IPFS config = infura"<<std::endl;
-            }else{
-                std::cout<< "IPFS config not recognized"<<std::endl;
-            }
+            } 
 
             string offer = queries["offer"];
 
@@ -212,8 +206,6 @@ void handler::handle_post(http_request message)
             // extract stored offers
 
             auto tmpbis = message.extract_json().get(); // reading test.json data stored as tmp
-
-            cout<<tmpbis;
 
             int cnt = 0;
             for (auto it = tmpbis.as_object().cbegin(); it != tmpbis.as_object().cend(); ++it) // for each ciphered offer do:

@@ -52,7 +52,7 @@ void on_initialize(const string_t &address)
     g_httpHandler = std::unique_ptr<handler>(new handler(addr));
     g_httpHandler->open().wait();
 
-    ucout << utility::string_t(U("[INFO] Listening for requests at: ")) << addr << std::endl;
+    ucout << utility::string_t(U("[CONFIG] Listening for requests at: ")) << addr << std::endl;
 
     return;
 }
@@ -77,14 +77,14 @@ int main(int argc, char *argv[])
     ipfs::Client client("ipfs.infura.io", 5001, "20s", "https://");
     if (ipfsConfig == "local") {        
         ipfs::Client client("localhost", 5001);
-        std::cout<< "[INFO] IPFS config: local"<<std::endl;
+        std::cout<< "[CONFIG] IPFS config: local"<<std::endl;
 
     } else if(ipfsConfig == "infura"){
         ipfs::Client client("ipfs.infura.io", 5001, "20s", "https://");
-        std::cout<< "[INFO] IPFS config: infura"<<std::endl;
+        std::cout<< "[CONFIG] IPFS config: infura"<<std::endl;
     }
     else{
-        std::cout<< "[INFO] IPFS config: not recognized"<<std::endl;
+        std::cout<< "[CONFIG] IPFS config: not recognized"<<std::endl;
         on_shutdown();
         return 0;
     }
