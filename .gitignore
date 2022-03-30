@@ -39,7 +39,8 @@ HashCompare/*.data
 RestHash/*.key
 RestHash/*.data
 
-tmp/*
+tmp/*key
+tmp/*.data
 
 server
 
