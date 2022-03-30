@@ -40,3 +40,7 @@ RestHash/*.key
 RestHash/*.data
 
 tmp/*
+
+server
+
+test.json

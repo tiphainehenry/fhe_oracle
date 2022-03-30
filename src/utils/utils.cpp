@@ -40,10 +40,9 @@ using Json = nlohmann::json;
 
 using namespace std;
 using namespace CryptoPP;
-using namespace std;
 
-using aes_key_t = std::array<byte, CryptoPP::AES::DEFAULT_KEYLENGTH>;
-using aes_iv_t = std::array<byte, CryptoPP::AES::BLOCKSIZE>;
+using aes_key_t = std::array<CryptoPP::byte, CryptoPP::AES::DEFAULT_KEYLENGTH>;
+using aes_iv_t = std::array<CryptoPP::byte, CryptoPP::AES::BLOCKSIZE>;
 
 
 #include <stdio.h>  /* defines FILENAME_MAX */

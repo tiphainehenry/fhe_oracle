@@ -13,12 +13,15 @@ Install
 -------
 Requirements:
 
+* libcurl, version 7.25.0 or higher
+* C++11 compiler 
+* CMake, version 3.11.0 or higher
 * [TFHE](http://tfhe.github.io/tfhe/installation.html)
 * [CRYPTOpp](https://www.cryptopp.com/wiki/Linux#Distribution_Package) - NB: an issue may occur with ++ instead of pp
-* [IPFS](https://github.com/vasild/cpp-ipfs-http-client) (only if IPFS config is set to local)
+* [IPFS](https://github.com/vasild/cpp-ipfs-http-client)
 * [CPPRestSDK](https://github.com/microsoft/cpprestsdk/wiki/How-to-build-for-Linux)
 * [boost](https://www.boost.org/doc/libs/1_61_0/more/getting_started/unix-variants.html)
-* [Nlohmann]
+* [Nlohmann] json
 
 Compiling and launching the API server
 --------------------------------------
