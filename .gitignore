@@ -44,4 +44,4 @@ tmp/*.data
 
 server
 
-test.json
+#test.json

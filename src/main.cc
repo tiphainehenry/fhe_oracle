@@ -2,8 +2,8 @@
 #include <sstream>
 
 #include <ipfs/client.h>
-#include "include/stdafx.h"
-#include "include/handler.h"
+#include "../include/stdafx.h"
+#include "../include/handler.h"
 
 using namespace std;
 using namespace web;

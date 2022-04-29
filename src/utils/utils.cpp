@@ -25,14 +25,14 @@
 #include <sys/time.h>
 #include <tfhe/tfhe.h>
 
-#include "./include/handler.h"
+#include "../../include/handler.h"
 
-#include "./include/polynomials.h"
-#include "./include/lwesamples.h"
-#include "./include/lwekey.h"
-#include "./include/lweparams.h"
-#include "./include/tlwe.h"
-#include "./include/tgsw.h"
+#include "../../include/polynomials.h"
+#include "../../include/lwesamples.h"
+#include "../../include/lwekey.h"
+#include "../../include/lweparams.h"
+#include "../../include/tlwe.h"
+#include "../../include/tgsw.h"
 #include <nlohmann/json.hpp>
 
 using Json = nlohmann::json;
