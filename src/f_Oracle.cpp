@@ -322,16 +322,13 @@ LweSample * addition_multiple(vector<LweSample *> offers, int offerNbr){
     TFheGateBootstrappingCloudKeySet *bk = new_tfheGateBootstrappingCloudKeySet_fromFile(cloud_key);
     fclose(cloud_key);
 
-    
-    
-    
 
    LweSample* tmp= new_gate_bootstrapping_ciphertext_array(16, bk->params);
    LweSample * result=new_gate_bootstrapping_ciphertext_array(16, bk->params);
     
     
-    
-    for(int index=1; index<offerNbr; index++){        
+    full_adder(tmp, offers[0], offers[1], 16, bk);
+    for(int index=2; index<offerNbr; index++){        
         for(int j = 0; j<nb_bits; j++){
         bootsCOPY(&result[j], &tmp[j],bk);
     }
@@ -340,6 +337,17 @@ LweSample * addition_multiple(vector<LweSample *> offers, int offerNbr){
     for(int i = 0; i<nb_bits; i++){
         bootsCOPY(&result[i], &tmp[i],bk);
     }
+    
+
+    string cleared_data = get_filename("cleared_data");
+    FILE *cloud_data = fopen(cleared_data.c_str(), "wb");
+    for (int j = 0; j < nb_bits; j++)
+    {
+       
+        export_gate_bootstrapping_ciphertext_toFile(cloud_data, &result[j], bk->params);
+            
+    }
+    fclose(cloud_data);
     return(result);
 }
 
@@ -370,6 +378,10 @@ LweSample * soustraction_multiple( vector<LweSample *> offers, int offerNbr){
     LweSample* ciphered_zero = new_gate_bootstrapping_ciphertext_array(16, bk->params);
          
     full_substract(ciphered_zero, offers[0],offers[0],16,bk);
+
+    // this artificial zero enables us to substract all the numbers, 
+    //like so : 0 -a -b -c ...
+    //and not like : a-b-c-d... instead.
     
 
    LweSample* tmp= new_gate_bootstrapping_ciphertext_array(16, bk->params);
@@ -381,28 +393,20 @@ LweSample * soustraction_multiple( vector<LweSample *> offers, int offerNbr){
         
         
         for(int j = 0; j<nb_bits; j++){
-        
-
         bootsCOPY(&result[j], &tmp[j],bk);
-                
-
-        
-        
     }
         full_substract(tmp,result, offers[index],16,bk);
-
     }
-    
     for(int i = 0; i<nb_bits; i++){
         bootsCOPY(&result[i], &tmp[i],bk);
-        
     }
 
 
     string cleared_data = get_filename("cleared_data");
     FILE *cloud_data = fopen(cleared_data.c_str(), "wb");
-    for (size_t j = 0; j < nb_bits; j++)
+    for (int j = 0; j < nb_bits; j++)
     {
+       
         export_gate_bootstrapping_ciphertext_toFile(cloud_data, &result[j], bk->params);
             
     }

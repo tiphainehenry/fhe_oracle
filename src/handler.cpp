@@ -332,17 +332,18 @@ void handler::handle_post(http_request message)
             string offers[numOffers];
             
             // fill in array randomly
-            // for(int i = 0; i < numOffers; i++){
-            //     string randNum = to_string(rand() % 10); 
-            //     offers[i] = randNum;              
-            //     //= {"1000", "62", "340"};
+            for(int i = 0; i < numOffers; i++){
+                string randNum = to_string(rand() % 180); 
+                offers[i] = randNum;              
+                //= {"1000", "62", "340"};
 
-            //     print_debug("offers i = " + offers[i]);
-            //     cout<<"offer:"<<i <<"="<<randNum<<endl;
-            // }
+                print_debug("offers i = " + offers[i]);
+                cout<<"offer:"<<i <<"="<<randNum<<endl;
+            }
 
-            offers[0]=17;
-            offers[1]=45;
+            // offers[0]=72;
+            // offers[1]=45;
+            // offers[2]=2;
            
 
             /// generate offers
@@ -358,14 +359,16 @@ void handler::handle_post(http_request message)
 
             for (int i = 0; i < numOffers; i++)
             {
+               
                 clearedOffers = utils_decryptOffer(std::to_string(i + 1) + ".", numOffers, clearedOffers);
             }
             print_debug("Decipher of FHE offers ok (#=" + std::to_string(clearedOffers.size()) + ")");
 
             //  launch comparison on "clearedOffers" that contains the cipher of all offers,
-            result = soustraction_multiple(clearedOffers,numOffers);
-            print_debug("hello\n");
+            result = addition_multiple(clearedOffers,numOffers);
+            print_debug("-----------------ok\n");
             utils_decipherSubstraction(clearedOffers.size());
+             print_debug("ok-----------------\n");
 
 
             message.reply(status_codes::OK, "OK- debug\n");

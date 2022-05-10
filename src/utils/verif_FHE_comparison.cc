@@ -45,9 +45,9 @@ namespace std
                 
                 for (int i = 0; i < 16; i++)
                 {
-                    print_debug("etape1\n");
+                    
                     import_gate_bootstrapping_ciphertext_fromFile(answer_data, &test[i], params);
-                    print_debug("etape2 \n");
+                    
                 }
 
                 int16_t int_answer = 0;
