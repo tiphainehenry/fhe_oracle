@@ -190,6 +190,43 @@ void full_adder(LweSample *sum, const LweSample *x, const LweSample *y, const in
     delete_LweSample_array(2, carry);
 }
 
+void full_substract(LweSample *sum, const LweSample *x, const LweSample *y, const int32_t nb_bits,
+                const TFheGateBootstrappingCloudKeySet *keyset) {
+    const LweParams *in_out_params = keyset->params->in_out_params;
+    // carries
+    LweSample *carry = new_LweSample_array(2, in_out_params);
+    // bootsSymEncrypt(carry, 0, keyset); // first carry initialized to 0
+    bootsCONSTANT(carry, 0, keyset);
+    LweSample *temp = new_LweSample_array(3, in_out_params);
+
+
+     LweSample *not_x = new_LweSample_array(4, in_out_params);
+    LweSample *not_temp = new_LweSample_array(3, in_out_params);
+ 
+
+    for (int32_t i = 0; i < nb_bits; ++i) {
+        //sumi = xi XOR yi XOR carry(i-1) 
+        bootsXOR(temp, x + i, y + i, keyset); // temp = xi XOR yi
+        bootsXOR(sum + i, temp, carry, keyset);
+
+        // carry = (xi AND yi) XOR (carry(i-1) AND (xi XOR yi))
+
+        bootsNOT(not_x,x+i,keyset);
+        bootsNOT(not_temp,temp, keyset);
+
+
+        bootsAND(temp + 1, not_x, y + i, keyset); // temp1 = xi AND yi
+        bootsAND(temp + 2, carry, not_temp, keyset); // temp2 = carry AND temp
+        bootsXOR(carry + 1, temp + 1, temp + 2, keyset);
+        bootsCOPY(carry, carry + 1, keyset);
+    }
+    bootsCOPY(sum, carry, keyset);
+    
+
+    delete_LweSample_array(3, temp);
+    delete_LweSample_array(2, carry);
+}
+
 
 void comparison_MUX(LweSample *comp, const LweSample *x, const LweSample *y, const int32_t nb_bits,
                     const TFheGateBootstrappingSecretKeySet *keyset) {

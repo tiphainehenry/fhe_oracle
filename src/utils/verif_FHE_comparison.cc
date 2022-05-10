@@ -39,21 +39,26 @@ namespace std
         {
 
             FILE *answer_data = fopen(filename.c_str(), "rb");
+            print_debug("filename = " + filename);
             for (size_t j = 0; j < offerCount; j++)
             {
+                
                 for (int i = 0; i < 16; i++)
                 {
+                    print_debug("etape1\n");
                     import_gate_bootstrapping_ciphertext_fromFile(answer_data, &test[i], params);
+                    print_debug("etape2 \n");
                 }
 
                 int16_t int_answer = 0;
                 for (int i = 0; i < 16; i++)
-                {
+                {   
                     int ai = bootsSymDecrypt(&test[i], key) > 0;
                     int_answer |= (ai << i);
                 }
-                // printf("And the result is: %d\n", int_answer);
+                 printf("And the result is: %d\n", int_answer);
                 intAnswers.push_back(int_answer);
+                
             }
             fclose(answer_data);
 
@@ -61,6 +66,7 @@ namespace std
             std::cout << " Maxed clear Vector" << std::endl;
             for (size_t i = 0; i < intAnswers.size(); i++)
             {
+                print_debug("etape 3\n");
                 cout << " | " << intAnswers[i];
             }
             cout << " |" << endl;

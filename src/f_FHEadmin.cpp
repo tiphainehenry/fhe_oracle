@@ -115,3 +115,12 @@ string utils_decipherArgmax(int offerNbr)
 }
 ////***********************************////
 ////***********************************////
+string utils_decipherSubstraction(int offerNbr)
+{
+    //// ROLE:FHE ADMIN
+
+    std::Verif verifz = std::Verif(offerNbr);
+    
+    string cleared_data = get_filename("cleared_data");
+    return verifz.decrypt(cleared_data.c_str()); 
+}
