@@ -418,7 +418,12 @@ void handler::handle_post(http_request message)
         }
     }
 
-    else if (message.relative_uri().path().find("/additionVector") ){
+    else if (message.relative_uri().path().find("/additionVector") != string::npos ){
+
+        string num = message.relative_uri().path();
+            num.erase(num.begin() + 0, num.begin() + 18);
+            print_debug("Launching substraction test with " +num+ " offers");
+            int numOffers =  stoi(num); 
         
         
 
