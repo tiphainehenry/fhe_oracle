@@ -35,9 +35,9 @@ namespace std
         {
         }
 
-        string decrypt(string filename)
+        string decrypt(string filename,int id)
         {
-
+            
             FILE *answer_data = fopen(filename.c_str(), "rb");
             print_debug("filename = " + filename);
             for (size_t j = 0; j < offerCount; j++)
@@ -59,14 +59,25 @@ namespace std
                  printf("And the result is: %d\n", int_answer);
                 intAnswers.push_back(int_answer);
                 
+                
             }
+            
             fclose(answer_data);
 
+            switch (id)
+            {
+                //not implemented
+            case 0:
+                /* code */
+                break;
 
+
+            //argmax
+            case 1:
+            {
             std::cout << " Maxed clear Vector" << std::endl;
             for (size_t i = 0; i < intAnswers.size(); i++)
             {
-                print_debug("etape 3\n");
                 cout << " | " << intAnswers[i];
             }
             cout << " |" << endl;
@@ -74,8 +85,33 @@ namespace std
 
             std::vector<int>::iterator max = max_element(intAnswers.begin(), intAnswers.end()); 
             int argmaxVal = std::distance(intAnswers.begin(), max); // absolute index of max
-
             return to_string(argmaxVal);
+            }
+                break;
+
+
+            //addition
+            case 2:
+            printf("Verification addition complete\n");
+            return to_string(0);
+                break;
+
+            //substraction
+            case 3:
+            printf("Verification substraction complete\n");
+            return to_string(0);
+                break;
+
+
+
+            default:
+                return to_string(0);
+                break;
+            
+            
+            }
+            return to_string(0);
+            
         }
     };
 }

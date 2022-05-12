@@ -28,6 +28,7 @@ using aes_key_t = std::array<CryptoPP::byte, CryptoPP::AES::DEFAULT_KEYLENGTH>;
 using aes_iv_t = std::array<CryptoPP::byte, CryptoPP::AES::BLOCKSIZE>;
 
 
+
 string store_fhe_keys_to_ipfs(string path_to_tmp)
 {
     //ROLES: FHE ADMIN AND ORACLE
@@ -104,24 +105,14 @@ void generate_fhe_params_and_keyset()
 ////***********************************////
 ////*********** ASK VERIF *************////
 
-string utils_decipherArgmax(int offerNbr)
+string utils_decipher(int offerNbr, int id)
 {
     //// ROLE:FHE ADMIN
 
     std::Verif verifz = std::Verif(offerNbr);
     
     string cleared_data = get_filename("cleared_data");
-    return verifz.decrypt(cleared_data.c_str()); 
+    return verifz.decrypt(cleared_data.c_str(), id); 
 }
 ////***********************************////
 ////***********************************////
-string utils_decipherSubstraction(int offerNbr)
-{
-    //// ROLE:FHE ADMIN
-
-    std::Verif verifz = std::Verif(offerNbr);
-    
-    string cleared_data = get_filename("cleared_data");
-    
-    return verifz.decrypt(cleared_data.c_str()); 
-}

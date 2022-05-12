@@ -177,7 +177,7 @@ void handler::handle_post(http_request message)
             utils_compare(clearedOffers, numOffers);
 
             //  decipher argmax for verification
-            string winnerArgmax = utils_decipherArgmax(clearedOffers.size());
+            string winnerArgmax = utils_decipher(clearedOffers.size(), 1);
             message.reply(status_codes::OK, "Argmax id of best offer is "+winnerArgmax);
         }
 
@@ -280,11 +280,6 @@ void handler::handle_post(http_request message)
                 print_debug("offers i = " + offers[i]);
                 cout<<"offer:"<<i <<"="<<randNum<<endl;
             }
-
-            // offers[0]="100";
-            // offers[1]="10";
-            // offers[2]="1";
-
             /// generate offers
             for (int i = 0; i < numOffers; i++)
             {
@@ -306,7 +301,7 @@ void handler::handle_post(http_request message)
            
 
             //  decipher argmax for verification
-            utils_decipherArgmax(clearedOffers.size());
+            utils_decipher(clearedOffers.size(),1);
 
             message.reply(status_codes::OK, "OK- debug\n");
         }
@@ -323,10 +318,7 @@ void handler::handle_post(http_request message)
         {
             string num = message.relative_uri().path();
             num.erase(num.begin() + 0, num.begin() + 21);
-            
-            
-
-            print_debug("Launching test with " +num+ " offers");
+            print_debug("Launching addition test with " +num+ " offers");
             int numOffers =  stoi(num);  
                      
             string offers[numOffers];
@@ -340,11 +332,6 @@ void handler::handle_post(http_request message)
                 print_debug("offers i = " + offers[i]);
                 cout<<"offer:"<<i <<"="<<randNum<<endl;
             }
-
-            // offers[0]=72;
-            // offers[1]=45;
-            // offers[2]=2;
-           
 
             /// generate offers
             for (int i = 0; i < numOffers; i++)
@@ -366,13 +353,64 @@ void handler::handle_post(http_request message)
 
             //  launch comparison on "clearedOffers" that contains the cipher of all offers,
             result = addition_multiple(clearedOffers,numOffers);
-            print_debug("-----------------ok\n");
-            utils_decipherSubstraction(clearedOffers.size());
-             print_debug("ok-----------------\n");
-
+            utils_decipher(1,2);
 
             message.reply(status_codes::OK, "OK- debug\n");
         }
+        
+        catch (const std::exception &e)
+        {
+            cout << "[ERROR] --> in debug multi" << endl;
+            std::cerr << e.what() << std::endl;
+        }
+    }
+
+
+    else if (message.relative_uri().path().find("/finddebugsubstraction") != string::npos) {
+        try
+        {
+            string num = message.relative_uri().path();
+            num.erase(num.begin() + 0, num.begin() + 25);
+            print_debug("Launching substraction test with " +num+ " offers");
+            int numOffers =  stoi(num);  
+                     
+            string offers[numOffers];
+            
+            // fill in array randomly
+            for(int i = 0; i < numOffers; i++){
+                string randNum = to_string(rand() % 100); 
+                offers[i] = randNum;              
+                //= {"1000", "62", "340"};
+
+                print_debug("offers i = " + offers[i]);
+                cout<<"offer:"<<i <<"="<<randNum<<endl;
+            }
+
+            /// generate offers
+            for (int i = 0; i < numOffers; i++)
+            {
+                registerMyOffer(offers[i], std::to_string(i + 1) + ".");
+            }
+            print_debug("Registration of FHE offers ok");
+
+            /// decipher AES layer and store FHE offers
+            vector<LweSample *> clearedOffers;
+            LweSample * result;
+
+            for (int i = 0; i < numOffers; i++)
+            {
+               
+                clearedOffers = utils_decryptOffer(std::to_string(i + 1) + ".", numOffers, clearedOffers);
+            }
+            print_debug("Decipher of FHE offers ok (#=" + std::to_string(clearedOffers.size()) + ")");
+
+            //  launch comparison on "clearedOffers" that contains the cipher of all offers,
+            result = substraction_multiple(clearedOffers,numOffers);
+            utils_decipher(1,3);
+
+            message.reply(status_codes::OK, "OK- debug\n");
+        }
+        
         catch (const std::exception &e)
         {
             cout << "[ERROR] --> in debug multi" << endl;
