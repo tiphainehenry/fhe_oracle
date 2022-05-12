@@ -333,7 +333,7 @@ void handler::handle_post(http_request message)
             
             // fill in array randomly
             for(int i = 0; i < numOffers; i++){
-                string randNum = to_string(rand() % 180); 
+                string randNum = to_string(rand() % 100); 
                 offers[i] = randNum;              
                 //= {"1000", "62", "340"};
 

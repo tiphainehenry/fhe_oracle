@@ -1,15 +1,15 @@
 {
-    "fd_data":  "tmp/",
-    "fd_ipfs":  "tmp/from_ipfs/",
+  "fd_data": "tmp/",
+  "fd_ipfs": "tmp/from_ipfs/",
 
-    "FHE_sk":"secret.key",
-    "FHE_pk":"cloud.key",
-    "FHE_metadata":"params.metadata",
+  "FHE_sk": "secret.key",
+  "FHE_pk": "cloud.key",
+  "FHE_metadata": "params.metadata",
 
-    "cleared_data":"answer.data",
+  "cleared_data": "answer.data",
 
-    "RSA_sk":"privateKey.key",
-    "RSA_pk":"publicKey.key",
+  "RSA_sk": "privateKey.key",
+  "RSA_pk": "publicKey.key",
 
-    "ipfs_config":"infura"
+  "ipfs_config": "local"
 }

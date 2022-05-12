@@ -357,7 +357,7 @@ LweSample * soustraction_multiple( vector<LweSample *> offers, int offerNbr){
     
     const int nb_bits = 16;
 
-     string FHE_metadata = get_filename("FHE_metadata");
+    string FHE_metadata = get_filename("FHE_metadata");
     FILE *params_file = fopen(FHE_metadata.c_str(), "rb");
     TFheGateBootstrappingParameterSet *params = new_tfheGateBootstrappingParameterSet_fromFile(params_file);
     fclose(params_file);
@@ -521,3 +521,28 @@ void utils_compare(vector<LweSample *> offers, int offerNbr)
     delete_gate_bootstrapping_secret_keyset(key);
     delete_gate_bootstrapping_parameters(params);
 }
+
+vector<LweSample *> min_vector( vector<vector<LweSample *>> offers, int offerNbr){
+    
+    const int nb_bits = 16;
+
+    string FHE_metadata = get_filename("FHE_metadata");
+    FILE *params_file = fopen(FHE_metadata.c_str(), "rb");
+    TFheGateBootstrappingParameterSet *params = new_tfheGateBootstrappingParameterSet_fromFile(params_file);
+    fclose(params_file);
+    
+
+    string FHE_sk = get_filename("FHE_sk");
+    FILE *secret_key = fopen(FHE_sk.c_str(), "rb");
+    TFheGateBootstrappingSecretKeySet *key = new_tfheGateBootstrappingSecretKeySet_fromFile(secret_key);
+    fclose(secret_key);
+    
+
+     string FHE_pk = get_filename("FHE_pk");
+    FILE *cloud_key = fopen(FHE_pk.c_str(), "rb"); //reads the cloud key from file
+    TFheGateBootstrappingCloudKeySet *bk = new_tfheGateBootstrappingCloudKeySet_fromFile(cloud_key);
+    fclose(cloud_key);
+
+
+}
+
