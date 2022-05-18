@@ -66,12 +66,7 @@ namespace std
 
             switch (id)
             {
-                //not implemented
-            case 0:
-                /* code */
-                break;
-
-
+                
             //argmax
             case 1:
             {

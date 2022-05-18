@@ -301,6 +301,14 @@ LweSample *addition(const LweSample *a, const LweSample *b, const TFheGateBootst
     return (res);
 }
 
+
+/***
+ * Adds 2 or more ciphered offers
+ * @arg offers: vector of FHE offers
+ * @arg offerNbr: the number of offers
+ * 
+ * @return encrypted result
+ * ***/
 LweSample * addition_multiple(vector<LweSample *> offers, int offerNbr){
 
     const int nb_bits = 16;
@@ -353,6 +361,15 @@ LweSample * addition_multiple(vector<LweSample *> offers, int offerNbr){
 
 
 
+/***
+ * Substracts 2 or more ciphered offers
+ * see [1] in function for further details
+ * @arg offers: vector of FHE offers
+ * @arg offerNbr: the number of offers
+ * 
+ * 
+ * @return encrypted result
+ * ***/
 LweSample * substraction_multiple( vector<LweSample *> offers, int offerNbr){
     
     const int nb_bits = 16;
@@ -378,10 +395,11 @@ LweSample * substraction_multiple( vector<LweSample *> offers, int offerNbr){
     LweSample* ciphered_zero = new_gate_bootstrapping_ciphertext_array(16, bk->params);
          
     full_substract(ciphered_zero, offers[0],offers[0],16,bk);
-
+    
+    // [1]
     // this artificial zero enables us to substract all the numbers, 
-    //like so : 0 -a -b -c ...
-    //and not like : a-b-c-d... instead.
+    // like so : 0 -a -b -c ...
+    // and not like : a-b-c-d... instead.
     
 
    LweSample* tmp= new_gate_bootstrapping_ciphertext_array(16, bk->params);

@@ -11,5 +11,5 @@
   "RSA_sk": "privateKey.key",
   "RSA_pk": "publicKey.key",
 
-  "ipfs_config": "local"
+  "ipfs_config": "infura"
 }
