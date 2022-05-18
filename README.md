@@ -13,6 +13,8 @@ Code is written in CPP.
 
 ## Install
 
+---
+
 Requirements:
 
 - libcurl, version 7.25.0 or higher
@@ -26,6 +28,8 @@ Requirements:
 - [Nlohmann] json
 
 ## Compiling and launching the API server
+
+---
 
 IPFS configuration:
 
@@ -47,6 +51,8 @@ Compile and launch the server:
   - `./server`
 
 ## REST Commands: Curl requests
+
+---
 
 **Tender creation** `curl -d "a=b" http://localhost:34568/newTender?Hash=test`
 
