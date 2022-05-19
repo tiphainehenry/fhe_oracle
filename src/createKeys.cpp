@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include "../include/handler.h"
 #include "utils/utils.cpp"
+
 #include "f_EndUser.cpp"
 #include "f_FHEadmin.cpp"
 #include "f_Oracle.cpp"
@@ -14,20 +15,20 @@
 using Json = nlohmann::json;
 
 int CreateKeys(){
-    string path_to_tmp = GetCurrentWorkingDir()+"/"+get_path("fd_data");
-    string path_to_ipfs_folder=GetCurrentWorkingDir()+"/"+get_path("fd_ipfs");
-    string path_to_test = GetCurrentWorkingDir()+"/";
+    // string path_to_tmp = GetCurrentWorkingDir()+"/"+get_path("fd_data");
+    // string path_to_ipfs_folder=GetCurrentWorkingDir()+"/"+get_path("fd_ipfs");
+    // string path_to_test = GetCurrentWorkingDir()+"/";
     print_info("Creating new tender (generation of FHE and RSA keys and storage to ipfs)");
 
 
     try{
         // key gen
-        generate_fhe_params_and_keyset();
-        utils_generateRSAKey();
+        // generate_fhe_params_and_keyset();
+        // utils_generateRSAKey();
         //print_info("RSA and FHE keys generated");
 
         // ipfs storage of the RSA key
-        string response = store_rsa_keys_to_ipfs(path_to_tmp);
+        // string response = store_rsa_keys_to_ipfs(path_to_tmp);
 
         print_info("OK - New set of keys generated");
     }

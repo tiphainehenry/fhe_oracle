@@ -301,6 +301,137 @@ LweSample *addition(const LweSample *a, const LweSample *b, const TFheGateBootst
     return (res);
 }
 
+
+/***
+ * Adds 2 or more ciphered offers
+ * @arg offers: vector of FHE offers
+ * @arg offerNbr: the number of offers
+ * 
+ * @return encrypted result
+ * ***/
+LweSample * addition_multiple(vector<LweSample *> offers, int offerNbr){
+
+    const int nb_bits = 16;
+
+     string FHE_metadata = get_filename("FHE_metadata");
+    FILE *params_file = fopen(FHE_metadata.c_str(), "rb");
+    TFheGateBootstrappingParameterSet *params = new_tfheGateBootstrappingParameterSet_fromFile(params_file);
+    fclose(params_file);
+    
+
+    string FHE_sk = get_filename("FHE_sk");
+    FILE *secret_key = fopen(FHE_sk.c_str(), "rb");
+    TFheGateBootstrappingSecretKeySet *key = new_tfheGateBootstrappingSecretKeySet_fromFile(secret_key);
+    fclose(secret_key);
+    
+
+     string FHE_pk = get_filename("FHE_pk");
+    FILE *cloud_key = fopen(FHE_pk.c_str(), "rb"); //reads the cloud key from file
+    TFheGateBootstrappingCloudKeySet *bk = new_tfheGateBootstrappingCloudKeySet_fromFile(cloud_key);
+    fclose(cloud_key);
+
+
+   LweSample* tmp= new_gate_bootstrapping_ciphertext_array(16, bk->params);
+   LweSample * result=new_gate_bootstrapping_ciphertext_array(16, bk->params);
+    
+    
+    full_adder(tmp, offers[0], offers[1], 16, bk);
+    for(int index=2; index<offerNbr; index++){        
+        for(int j = 0; j<nb_bits; j++){
+        bootsCOPY(&result[j], &tmp[j],bk);
+    }
+        full_adder(tmp,result, offers[index],16,bk);
+    }
+    for(int i = 0; i<nb_bits; i++){
+        bootsCOPY(&result[i], &tmp[i],bk);
+    }
+    
+
+    string cleared_data = get_filename("cleared_data");
+    FILE *cloud_data = fopen(cleared_data.c_str(), "wb");
+    for (int j = 0; j < nb_bits; j++)
+    {
+       
+        export_gate_bootstrapping_ciphertext_toFile(cloud_data, &result[j], bk->params);
+            
+    }
+    fclose(cloud_data);
+    return(result);
+}
+
+
+
+/***
+ * Substracts 2 or more ciphered offers
+ * see [1] in function for further details
+ * @arg offers: vector of FHE offers
+ * @arg offerNbr: the number of offers
+ * 
+ * 
+ * @return encrypted result
+ * ***/
+LweSample * substraction_multiple( vector<LweSample *> offers, int offerNbr){
+    
+    const int nb_bits = 16;
+
+    string FHE_metadata = get_filename("FHE_metadata");
+    FILE *params_file = fopen(FHE_metadata.c_str(), "rb");
+    TFheGateBootstrappingParameterSet *params = new_tfheGateBootstrappingParameterSet_fromFile(params_file);
+    fclose(params_file);
+    
+
+    string FHE_sk = get_filename("FHE_sk");
+    FILE *secret_key = fopen(FHE_sk.c_str(), "rb");
+    TFheGateBootstrappingSecretKeySet *key = new_tfheGateBootstrappingSecretKeySet_fromFile(secret_key);
+    fclose(secret_key);
+    
+
+     string FHE_pk = get_filename("FHE_pk");
+    FILE *cloud_key = fopen(FHE_pk.c_str(), "rb"); //reads the cloud key from file
+    TFheGateBootstrappingCloudKeySet *bk = new_tfheGateBootstrappingCloudKeySet_fromFile(cloud_key);
+    fclose(cloud_key);
+
+    
+    LweSample* ciphered_zero = new_gate_bootstrapping_ciphertext_array(16, bk->params);
+         
+    full_substract(ciphered_zero, offers[0],offers[0],16,bk);
+    
+    // [1]
+    // this artificial zero enables us to substract all the numbers, 
+    // like so : 0 -a -b -c ...
+    // and not like : a-b-c-d... instead.
+    
+
+   LweSample* tmp= new_gate_bootstrapping_ciphertext_array(16, bk->params);
+   LweSample * result=new_gate_bootstrapping_ciphertext_array(16, bk->params);
+    
+    
+    full_substract(tmp,ciphered_zero, offers[0],16,bk);
+    for(int index=1; index<offerNbr; index++){
+        
+        
+        for(int j = 0; j<nb_bits; j++){
+        bootsCOPY(&result[j], &tmp[j],bk);
+    }
+        full_substract(tmp,result, offers[index],16,bk);
+    }
+    for(int i = 0; i<nb_bits; i++){
+        bootsCOPY(&result[i], &tmp[i],bk);
+    }
+
+
+    string cleared_data = get_filename("cleared_data");
+    FILE *cloud_data = fopen(cleared_data.c_str(), "wb");
+    for (int j = 0; j < nb_bits; j++)
+    {
+       
+        export_gate_bootstrapping_ciphertext_toFile(cloud_data, &result[j], bk->params);
+            
+    }
+    fclose(cloud_data);
+    return(result);
+}
+
 LweSample *minimum(
     vector<LweSample *> a,
     const int nb_bits,
@@ -359,7 +490,7 @@ void utils_getMinimum(LweSample *c_zero, LweSample *c_ten,
         cipheredArgmaxVector[i] = tmp;
     }
 
-    // EXPORT ARGMAX (COMPARISON OUTPUTS)
+    // EXPORT ARGMAX (COMPARISON OUTPUTS) inside cleared_data file which refers to answer.data
     string cleared_data = get_filename("cleared_data");
     FILE *cloud_data = fopen(cleared_data.c_str(), "wb");
     for (size_t j = 0; j < cipheredArgmaxVector.size(); j++)
@@ -408,3 +539,29 @@ void utils_compare(vector<LweSample *> offers, int offerNbr)
     delete_gate_bootstrapping_secret_keyset(key);
     delete_gate_bootstrapping_parameters(params);
 }
+
+
+// vector<LweSample *> min_vector( vector<vector<LweSample *>> offers, int offerNbr){
+    
+//     const int nb_bits = 16;
+
+//     string FHE_metadata = get_filename("FHE_metadata");
+//     FILE *params_file = fopen(FHE_metadata.c_str(), "rb");
+//     TFheGateBootstrappingParameterSet *params = new_tfheGateBootstrappingParameterSet_fromFile(params_file);
+//     fclose(params_file);
+    
+
+//     string FHE_sk = get_filename("FHE_sk");
+//     FILE *secret_key = fopen(FHE_sk.c_str(), "rb");
+//     TFheGateBootstrappingSecretKeySet *key = new_tfheGateBootstrappingSecretKeySet_fromFile(secret_key);
+//     fclose(secret_key);
+    
+
+//      string FHE_pk = get_filename("FHE_pk");
+//     FILE *cloud_key = fopen(FHE_pk.c_str(), "rb"); //reads the cloud key from file
+//     TFheGateBootstrappingCloudKeySet *bk = new_tfheGateBootstrappingCloudKeySet_fromFile(cloud_key);
+//     fclose(cloud_key);
+
+
+// }
+

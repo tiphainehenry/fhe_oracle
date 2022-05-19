@@ -81,10 +81,12 @@ void handler::handle_post(http_request message)
     std::cout << "[INFO] Handling post request  (Path:" << message.relative_uri().path() << "|Query:" << message.relative_uri().query() << ")" << endl;
     auto queries = uri::split_query(message.relative_uri().query());
 
+    
     string path_to_tmp = GetCurrentWorkingDir()+"/"+get_path("fd_data");
     string path_to_ipfs_folder=GetCurrentWorkingDir()+"/"+get_path("fd_ipfs");
     string path_to_test = GetCurrentWorkingDir()+"/";
 
+    
     if (message.relative_uri().path() == "/newTender")
     {
         print_info("Creating new tender (generation of FHE and RSA keys and storage to ipfs)");
@@ -107,7 +109,7 @@ void handler::handle_post(http_request message)
                 //string response = store_fhe_keys_to_ipfs(path_to_tmp);
                 string response = store_rsa_keys_to_ipfs(path_to_tmp);
 
-                message.reply(status_codes::OK, "New set of keys generated");
+                message.reply(status_codes::OK, "New set of keys generated\n");
             }
             catch (const std::exception &e)
             {
@@ -175,7 +177,7 @@ void handler::handle_post(http_request message)
             utils_compare(clearedOffers, numOffers);
 
             //  decipher argmax for verification
-            string winnerArgmax = utils_decipherArgmax(clearedOffers.size());
+            string winnerArgmax = utils_decipher(clearedOffers.size(), 1);
             message.reply(status_codes::OK, "Argmax id of best offer is "+winnerArgmax);
         }
 
@@ -272,10 +274,12 @@ void handler::handle_post(http_request message)
             // fill in array randomly
             for(int i = 0; i < numOffers; i++){
                 string randNum = to_string(rand() % 10); 
-                offers[i] = randNum;              //= {"1000", "62", "340"};
+                offers[i] = randNum;              
+                //= {"1000", "62", "340"};
+
+                print_debug("offers i = " + offers[i]);
                 cout<<"offer:"<<i <<"="<<randNum<<endl;
             }
-
             /// generate offers
             for (int i = 0; i < numOffers; i++)
             {
@@ -294,17 +298,135 @@ void handler::handle_post(http_request message)
             //  launch comparison on "clearedOffers" that contains the cipher of all offers,
             print_debug("Launching comparison");
             utils_compare(clearedOffers, numOffers);
+           
 
             //  decipher argmax for verification
-            utils_decipherArgmax(clearedOffers.size());
+            utils_decipher(clearedOffers.size(),1);
 
-            message.reply(status_codes::OK, "OK- debug");
+            message.reply(status_codes::OK, "OK- debug\n");
         }
         catch (const std::exception &e)
         {
             cout << "[ERROR] --> in debug multi" << endl;
             std::cerr << e.what() << std::endl;
         }
+    }
+
+
+    else if (message.relative_uri().path().find("/finddebugaddition") != string::npos) {
+        try
+        {
+            string num = message.relative_uri().path();
+            num.erase(num.begin() + 0, num.begin() + 21);
+            print_debug("Launching addition test with " +num+ " offers");
+            int numOffers =  stoi(num);  
+                     
+            string offers[numOffers];
+            
+            // fill in array randomly
+            for(int i = 0; i < numOffers; i++){
+                string randNum = to_string(rand() % 100); 
+                offers[i] = randNum;              
+                //= {"1000", "62", "340"};
+
+                print_debug("offers i = " + offers[i]);
+                cout<<"offer:"<<i <<"="<<randNum<<endl;
+            }
+
+            /// generate offers
+            for (int i = 0; i < numOffers; i++)
+            {
+                registerMyOffer(offers[i], std::to_string(i + 1) + ".");
+            }
+            print_debug("Registration of FHE offers ok");
+
+            /// decipher AES layer and store FHE offers
+            vector<LweSample *> clearedOffers;
+            LweSample * result;
+
+            for (int i = 0; i < numOffers; i++)
+            {
+               
+                clearedOffers = utils_decryptOffer(std::to_string(i + 1) + ".", numOffers, clearedOffers);
+            }
+            print_debug("Decipher of FHE offers ok (#=" + std::to_string(clearedOffers.size()) + ")");
+
+            //  launch comparison on "clearedOffers" that contains the cipher of all offers,
+            result = addition_multiple(clearedOffers,numOffers);
+            utils_decipher(1,2);
+
+            message.reply(status_codes::OK, "OK- debug\n");
+        }
+        
+        catch (const std::exception &e)
+        {
+            cout << "[ERROR] --> in debug multi" << endl;
+            std::cerr << e.what() << std::endl;
+        }
+    }
+
+
+    else if (message.relative_uri().path().find("/finddebugsubstraction") != string::npos) {
+        try
+        {
+            string num = message.relative_uri().path();
+            num.erase(num.begin() + 0, num.begin() + 25);
+            print_debug("Launching substraction test with " +num+ " offers");
+            int numOffers =  stoi(num);  
+                     
+            string offers[numOffers];
+            
+            // fill in array randomly
+            for(int i = 0; i < numOffers; i++){
+                string randNum = to_string(rand() % 100); 
+                offers[i] = randNum;              
+                //= {"1000", "62", "340"};
+
+                print_debug("offers i = " + offers[i]);
+                cout<<"offer:"<<i <<"="<<randNum<<endl;
+            }
+
+            /// generate offers
+            for (int i = 0; i < numOffers; i++)
+            {
+                registerMyOffer(offers[i], std::to_string(i + 1) + ".");
+            }
+            print_debug("Registration of FHE offers ok");
+
+            /// decipher AES layer and store FHE offers
+            vector<LweSample *> clearedOffers;
+            LweSample * result;
+
+            for (int i = 0; i < numOffers; i++)
+            {
+               
+                clearedOffers = utils_decryptOffer(std::to_string(i + 1) + ".", numOffers, clearedOffers);
+            }
+            print_debug("Decipher of FHE offers ok (#=" + std::to_string(clearedOffers.size()) + ")");
+
+            //  launch comparison on "clearedOffers" that contains the cipher of all offers,
+            result = substraction_multiple(clearedOffers,numOffers);
+            utils_decipher(1,3);
+
+            message.reply(status_codes::OK, "OK- debug\n");
+        }
+        
+        catch (const std::exception &e)
+        {
+            cout << "[ERROR] --> in debug multi" << endl;
+            std::cerr << e.what() << std::endl;
+        }
+    }
+
+    else if (message.relative_uri().path().find("/additionVector") != string::npos ){
+
+        string num = message.relative_uri().path();
+            num.erase(num.begin() + 0, num.begin() + 18);
+            print_debug("Launching substraction test with " +num+ " offers");
+            int numOffers =  stoi(num); 
+        
+        
+
     }
 
     else
