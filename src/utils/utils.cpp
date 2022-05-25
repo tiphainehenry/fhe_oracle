@@ -228,6 +228,13 @@ void full_substract(LweSample *sum, const LweSample *x, const LweSample *y, cons
 }
 
 
+void full_divide(LweSample *sum, const LweSample *x, const LweSample *y, const int32_t nb_bits,
+                const TFheGateBootstrappingCloudKeySet *keyset){
+
+                    
+                }
+
+
 void comparison_MUX(LweSample *comp, const LweSample *x, const LweSample *y, const int32_t nb_bits,
                     const TFheGateBootstrappingSecretKeySet *keyset) {
     const LweParams *in_out_params = keyset->params->in_out_params;

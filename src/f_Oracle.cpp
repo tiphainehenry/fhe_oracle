@@ -38,17 +38,17 @@ string store_rsa_keys_to_ipfs(string path_to_tmp)
     ipfs::Json tmp;
     // Configure IPFS
     std::string ipfsConfig = get_ipfs_config();
-    ipfs::Client client("ipfs.infura.io", 5001, "20s", "https://");
+    ipfs::Client client("ipfs.infura.io", 5001, "", "https://");
     if (ipfsConfig == "local") {        
         ipfs::Client client("localhost", 5001);
     } 
-
+    //problem here
+    print_debug("path = " +  path_to_tmp);
     client.FilesAdd({{"publicKey.key", ipfs::http::FileUpload::Type::kFileName, path_to_tmp + "publicKey.key"}},
                     &tmp);
 
     string keyTypeShort[1] = {
         "(RSA public key to cipher AES keys)"};
-
     string response;
     for (size_t i = 0; i < tmp.size(); i++)
     {
@@ -539,6 +539,56 @@ void utils_compare(vector<LweSample *> offers, int offerNbr)
     delete_gate_bootstrapping_secret_keyset(key);
     delete_gate_bootstrapping_parameters(params);
 }
+
+LweSample * divison( LweSample * offer1, LweSample * offer2 ){
+    
+    const int nb_bits = 16;
+
+    string FHE_metadata = get_filename("FHE_metadata");
+    FILE *params_file = fopen(FHE_metadata.c_str(), "rb");
+    TFheGateBootstrappingParameterSet *params = new_tfheGateBootstrappingParameterSet_fromFile(params_file);
+    fclose(params_file);
+    
+
+    string FHE_sk = get_filename("FHE_sk");
+    FILE *secret_key = fopen(FHE_sk.c_str(), "rb");
+    TFheGateBootstrappingSecretKeySet *key = new_tfheGateBootstrappingSecretKeySet_fromFile(secret_key);
+    fclose(secret_key);
+    
+
+     string FHE_pk = get_filename("FHE_pk");
+    FILE *cloud_key = fopen(FHE_pk.c_str(), "rb"); //reads the cloud key from file
+    TFheGateBootstrappingCloudKeySet *bk = new_tfheGateBootstrappingCloudKeySet_fromFile(cloud_key);
+    fclose(cloud_key);
+
+   LweSample* tmp= new_gate_bootstrapping_ciphertext_array(16, bk->params);
+   LweSample * result=new_gate_bootstrapping_ciphertext_array(16, bk->params);
+    
+    
+   
+    
+    for(int i = 0; i<nb_bits; i++){
+        bootsCOPY(&result[i], &tmp[i],bk);
+    }
+
+
+    string cleared_data = get_filename("cleared_data");
+    FILE *cloud_data = fopen(cleared_data.c_str(), "wb");
+    for (int j = 0; j < nb_bits; j++)
+    {
+       
+        export_gate_bootstrapping_ciphertext_toFile(cloud_data, &result[j], bk->params);
+            
+    }
+    fclose(cloud_data);
+    return(result);
+}
+
+
+
+
+
+
 
 
 // vector<LweSample *> min_vector( vector<vector<LweSample *>> offers, int offerNbr){

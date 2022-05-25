@@ -107,6 +107,7 @@ void handler::handle_post(http_request message)
 
                 // ipfs storage of the RSA key
                 //string response = store_fhe_keys_to_ipfs(path_to_tmp);
+                print_info("here");
                 string response = store_rsa_keys_to_ipfs(path_to_tmp);
 
                 message.reply(status_codes::OK, "New set of keys generated\n");
@@ -127,7 +128,7 @@ void handler::handle_post(http_request message)
             // Configure IPFS
             std::string ipfsConfig = get_ipfs_config();
 
-            ipfs::Client client("ipfs.infura.io", 5001, "20s", "https://");
+            ipfs::Client client("ipfs.infura.io", 5001,"", "https://");
             if (ipfsConfig == "local") {        
                 ipfs::Client client("localhost", 5001);
             } 
@@ -194,7 +195,7 @@ void handler::handle_post(http_request message)
             ipfs::Json tmp;
             // Configure IPFS
             std::string ipfsConfig_ = get_ipfs_config();
-            ipfs::Client client("ipfs.infura.io", 5001, "20s", "https://");
+            ipfs::Client client("ipfs.infura.io", 5001, "", "https://");
     
             if (ipfsConfig_ == "local") {        
                 ipfs::Client client("localhost", 5001);
@@ -267,7 +268,7 @@ void handler::handle_post(http_request message)
             cout << "After erase(idx) : ";
             cout << num;
 
-            print_debug("Launching test with " +num+ " offers");
+            print_debug("Launching test with " +num+ " offers ");
             int numOffers = stoi(num);            
             string offers[numOffers];
             
@@ -277,7 +278,7 @@ void handler::handle_post(http_request message)
                 offers[i] = randNum;              
                 //= {"1000", "62", "340"};
 
-                print_debug("offers i = " + offers[i]);
+                print_debug("offers =" + offers[i]);
                 cout<<"offer:"<<i <<"="<<randNum<<endl;
             }
             /// generate offers
@@ -291,7 +292,10 @@ void handler::handle_post(http_request message)
             vector<LweSample *> clearedOffers;
             for (int i = 0; i < numOffers; i++)
             {
+                 
                 clearedOffers = utils_decryptOffer(std::to_string(i + 1) + ".", numOffers, clearedOffers);
+
+            
             }
             print_debug("Decipher of FHE offers ok (#=" + std::to_string(clearedOffers.size()) + ")");
 
