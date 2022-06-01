@@ -1,6 +1,5 @@
 # fhe_oracle
 
-===============
 
 This repo comprises the code used to generate a REST API that allows:
 
@@ -13,7 +12,6 @@ Code is written in CPP.
 
 ## Install
 
----
 
 Requirements:
 
@@ -29,7 +27,6 @@ Requirements:
 
 ## Compiling and launching the API server
 
----
 
 IPFS configuration:
 
@@ -52,7 +49,6 @@ Compile and launch the server:
 
 ## REST Commands: Curl requests
 
----
 
 **Tender creation** `curl -d "a=b" http://localhost:34568/newTender?Hash=test`
 
