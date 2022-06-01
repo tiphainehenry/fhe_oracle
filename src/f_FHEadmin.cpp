@@ -35,7 +35,7 @@ string store_fhe_keys_to_ipfs(string path_to_tmp)
     ipfs::Json tmp;
     // Configure IPFS
     std::string ipfsConfig = get_ipfs_config();
-    ipfs::Client client("ipfs.infura.io", 5001, "20s", "https://");
+    ipfs::Client client("ipfs.infura.io", 5001, "", "https://");
     if (ipfsConfig == "local") {        
         ipfs::Client client("localhost", 5001);
     } 

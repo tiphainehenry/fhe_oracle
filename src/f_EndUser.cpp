@@ -156,7 +156,6 @@ void registerMyOffer(string offer, string prefix){
     std::string AESKeyName1 = fd_data+ prefix+"AES.key";
     std::string offerName1 = fd_data+prefix+"AES.data";
     string RSA_pk= get_filename("RSA_pk");
-
     cipherOfferWithFHE(prefix, offer);  // RETRIEVE FHE DATA AND CIPHER OFFER IN FHE
     addAESLayer(prefix, RSA_pk);             // CIPHER AES KEY IN RSA            
 }

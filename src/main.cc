@@ -74,13 +74,13 @@ int main(int argc, char *argv[])
     // Configure IPFS
     std::string ipfsConfig = get_ipfs_config_main();
     
-    ipfs::Client client("ipfs.infura.io", 5001, "20s", "https://");
+    ipfs::Client client("ipfs.infura.io", 5001, "", "https://");
     if (ipfsConfig == "local") {        
         ipfs::Client client("localhost", 5001);
         std::cout<< "[CONFIG] IPFS config: local"<<std::endl;
 
     } else if(ipfsConfig == "infura"){
-        ipfs::Client client("ipfs.infura.io", 5001, "20s", "https://");
+        ipfs::Client client("ipfs.infura.io", 5001, "", "https://");
         std::cout<< "[CONFIG] IPFS config: infura"<<std::endl;
     }
     else{
