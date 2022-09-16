@@ -15,7 +15,7 @@
 #define NOMINMAX
 #include <Windows.h>
 #else
-# include <sys/time.h>
+#include <sys/time.h>
 #endif
 using namespace std;
 
@@ -28,9 +28,9 @@ using namespace std;
 #include "cpprest/containerstream.h"
 #include "cpprest/producerconsumerstream.h"
 
-#pragma warning ( push )
-#pragma warning ( disable : 4457 )
-#pragma warning ( pop )
+#pragma warning(push)
+#pragma warning(disable : 4457)
+#pragma warning(pop)
 #include <locale>
 #include <ctime>
 #endif // STDAFX_H_INCLUDED
