@@ -14,25 +14,27 @@
 // #include "../ParserData.cc"
 using Json = nlohmann::json;
 
-int CreateKeys(){
+int CreateKeys()
+{
     // string path_to_tmp = GetCurrentWorkingDir()+"/"+get_path("fd_data");
     // string path_to_ipfs_folder=GetCurrentWorkingDir()+"/"+get_path("fd_ipfs");
     // string path_to_test = GetCurrentWorkingDir()+"/";
     print_info("Creating new tender (generation of FHE and RSA keys and storage to ipfs)");
 
-
-    try{
+    try
+    {
         // key gen
         // generate_fhe_params_and_keyset();
         // utils_generateRSAKey();
-        //print_info("RSA and FHE keys generated");
+        // print_info("RSA and FHE keys generated");
 
         // ipfs storage of the RSA key
         // string response = store_rsa_keys_to_ipfs(path_to_tmp);
 
         print_info("OK - New set of keys generated");
     }
-    catch (const std::exception &e){
+    catch (const std::exception &e)
+    {
         cout << "[ERROR] --> in new tender" << endl;
         std::cerr << e.what() << std::endl;
     }

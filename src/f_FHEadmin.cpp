@@ -24,21 +24,20 @@
 using namespace CryptoPP;
 using namespace std;
 
-using aes_key_t = std::array<CryptoPP::byte, CryptoPP::AES::DEFAULT_KEYLENGTH>;
-using aes_iv_t = std::array<CryptoPP::byte, CryptoPP::AES::BLOCKSIZE>;
-
-
+using aes_key_t = std::array<byte, CryptoPP::AES::DEFAULT_KEYLENGTH>;
+using aes_iv_t = std::array<byte, CryptoPP::AES::BLOCKSIZE>;
 
 string store_fhe_keys_to_ipfs(string path_to_tmp)
 {
-    //ROLES: FHE ADMIN AND ORACLE
+    // ROLES: FHE ADMIN AND ORACLE
     ipfs::Json tmp;
     // Configure IPFS
     std::string ipfsConfig = get_ipfs_config();
     ipfs::Client client("ipfs.infura.io", 5001, "", "https://");
-    if (ipfsConfig == "local") {        
+    if (ipfsConfig == "local")
+    {
         ipfs::Client client("localhost", 5001);
-    } 
+    }
 
     cout << "IPFS key storage test" << endl;
     cout << path_to_tmp << endl;
@@ -69,7 +68,7 @@ string store_fhe_keys_to_ipfs(string path_to_tmp)
 
 void generate_fhe_params_and_keyset()
 {
-    /// ROLE: FHE ADMIN 
+    /// ROLE: FHE ADMIN
 
     // FHE params
     const int minimum_lambda = 110;
@@ -80,18 +79,18 @@ void generate_fhe_params_and_keyset()
     export_tfheGateBootstrappingParameterSet_toFile(params_file, params);
     fclose(params_file);
 
-    //generate a random key
+    // generate a random key
     uint32_t seed[] = {314, 1592, 657};
     tfhe_random_generator_setSeed(seed, 3);
     TFheGateBootstrappingSecretKeySet *key = new_random_gate_bootstrapping_secret_keyset(params);
 
-    //export the secret key to file for later use
+    // export the secret key to file for later use
     string FHE_sk = get_filename("FHE_sk");
     FILE *secret_key = fopen(FHE_sk.c_str(), "wb");
     export_tfheGateBootstrappingSecretKeySet_toFile(secret_key, key);
     fclose(secret_key);
 
-    //export the cloud key to a file (for the cloud)
+    // export the cloud key to a file (for the cloud)
     string FHE_pk = get_filename("FHE_pk");
     FILE *cloud_key = fopen(FHE_pk.c_str(), "wb");
     export_tfheGateBootstrappingCloudKeySet_toFile(cloud_key, &key->cloud);
@@ -110,9 +109,9 @@ string utils_decipher(int offerNbr, int id)
     //// ROLE:FHE ADMIN
 
     std::Verif verifz = std::Verif(offerNbr);
-    
+
     string cleared_data = get_filename("cleared_data");
-    return verifz.decrypt(cleared_data.c_str(), id); 
+    return verifz.decrypt(cleared_data.c_str(), id);
 }
 ////***********************************////
 ////***********************************////

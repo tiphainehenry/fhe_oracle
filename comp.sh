@@ -7,6 +7,6 @@ then
 
     cp -f src/utils/test_template.json test.json 
 fi
-g++ src/*.cc  src/handler.cpp -o server -lboost_system -lcrypto -lssl -lcpprest -pthread -lipfs-http-client -lcurl -ltfhe-spqlios-fma -lstdc++ -L/usr/local/lib/ -lcryptopp -lpthread
+g++ src/*.cc  src/handler.cpp -o server -lboost_system -lcrypto -lssl -lcpprest -pthread -lipfs-http-client -lcurl -ltfhe-spqlios-fma -lstdc++ -L/usr/local/lib/ -lcryptopp -lpthread -L/usr/include/crypto++ 
 
 ./server

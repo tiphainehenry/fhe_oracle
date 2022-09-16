@@ -16,18 +16,18 @@ using Json = nlohmann::json;
 
 handler::handler()
 {
-    //ctor
+    // ctor
 }
 handler::handler(utility::string_t url) : m_listener(url)
 {
     // m_listener.support(methods::GET, std::bind(&handler::handle_get, this, std::placeholders::_1));
-    //m_listener.support(methods::PUT, std::bind(&handler::handle_put, this, std::placeholders::_1));
+    // m_listener.support(methods::PUT, std::bind(&handler::handle_put, this, std::placeholders::_1));
     m_listener.support(methods::POST, std::bind(&handler::handle_post, this, std::placeholders::_1));
     // m_listener.support(methods::DEL, std::bind(&handler::handle_delete, this, std::placeholders::_1));
 }
 handler::~handler()
 {
-    //dtor
+    // dtor
 }
 
 void handler::handle_error(pplx::task<void> &t)
@@ -47,14 +47,14 @@ void handler::handle_error(pplx::task<void> &t)
 //
 void handler::handle_get(http_request message)
 {
-    //ucout << message.to_string() << endl;
+    // ucout << message.to_string() << endl;
 
     auto paths = http::uri::split_path(http::uri::decode(message.relative_uri().path()));
 
     message.relative_uri().path();
     message.relative_uri().query();
-    //ucout << message.relative_uri().path() << endl;
-    //ucout << message.relative_uri().query() << endl;
+    // ucout << message.relative_uri().path() << endl;
+    // ucout << message.relative_uri().query() << endl;
 
     message.reply(status_codes::OK, U("reading handler"))
         .then([](pplx::task<void> t)
@@ -67,8 +67,7 @@ void handler::handle_get(http_request message)
                   {
                       cout << "[ERROR] --> in handle_get" << endl;
                       std::cerr << e.what() << std::endl;
-                  }
-              });
+                  } });
 
     return;
 };
@@ -81,12 +80,10 @@ void handler::handle_post(http_request message)
     std::cout << "[INFO] Handling post request  (Path:" << message.relative_uri().path() << "|Query:" << message.relative_uri().query() << ")" << endl;
     auto queries = uri::split_query(message.relative_uri().query());
 
-    
-    string path_to_tmp = GetCurrentWorkingDir()+"/"+get_path("fd_data");
-    string path_to_ipfs_folder=GetCurrentWorkingDir()+"/"+get_path("fd_ipfs");
-    string path_to_test = GetCurrentWorkingDir()+"/";
+    string path_to_tmp = GetCurrentWorkingDir() + "/" + get_path("fd_data");
+    string path_to_ipfs_folder = GetCurrentWorkingDir() + "/" + get_path("fd_ipfs");
+    string path_to_test = GetCurrentWorkingDir() + "/";
 
-    
     if (message.relative_uri().path() == "/newTender")
     {
         print_info("Creating new tender (generation of FHE and RSA keys and storage to ipfs)");
@@ -106,7 +103,7 @@ void handler::handle_post(http_request message)
                 print_info("RSA and FHE keys generated");
 
                 // ipfs storage of the RSA key
-                //string response = store_fhe_keys_to_ipfs(path_to_tmp);
+                // string response = store_fhe_keys_to_ipfs(path_to_tmp);
                 print_info("here");
                 string response = store_rsa_keys_to_ipfs(path_to_tmp);
 
@@ -128,22 +125,23 @@ void handler::handle_post(http_request message)
             // Configure IPFS
             std::string ipfsConfig = get_ipfs_config();
 
-            ipfs::Client client("ipfs.infura.io", 5001,"", "https://");
-            if (ipfsConfig == "local") {        
-                ipfs::Client client("localhost", 5001);
-            } 
-
-            vector<string> offerNames;
-            vector<LweSample *> clearedOffers;		    
-            auto tmp = message.extract_json().get();                                     // reading test.json data stored as tmp
-            //print_debug("test2");
-            int numOffers =0;
-            for (auto it = tmp.as_object().cbegin(); it != tmp.as_object().cend(); ++it) // for each ciphered offer do:
+            ipfs::Client client("ipfs.infura.io", 5001, "", "https://");
+            if (ipfsConfig == "local")
             {
-                numOffers = numOffers+1;
+                ipfs::Client client("localhost", 5001);
             }
 
-            int i =0;
+            vector<string> offerNames;
+            vector<LweSample *> clearedOffers;
+            auto tmp = message.extract_json().get(); // reading test.json data stored as tmp
+            // print_debug("test2");
+            int numOffers = 0;
+            for (auto it = tmp.as_object().cbegin(); it != tmp.as_object().cend(); ++it) // for each ciphered offer do:
+            {
+                numOffers = numOffers + 1;
+            }
+
+            int i = 0;
             for (auto it = tmp.as_object().cbegin(); it != tmp.as_object().cend(); ++it) // for each ciphered offer do:
             {
                 std::cout << "_______________________________________________________"
@@ -160,15 +158,15 @@ void handler::handle_post(http_request message)
                 std::cout << "> OFFER: " << offer << endl;
 
                 // Retrieve key and offer IPFS data and save it locally
-                
-                std::string keyFileName = utils_ipfsToFile(key, path_to_ipfs_folder+it->first, client, "AES.key");
-                std::string offerFileName = utils_ipfsToFile(offer, path_to_ipfs_folder+it->first, client, "AES.data");
+
+                std::string keyFileName = utils_ipfsToFile(key, path_to_ipfs_folder + it->first, client, "AES.key");
+                std::string offerFileName = utils_ipfsToFile(offer, path_to_ipfs_folder + it->first, client, "AES.data");
 
                 print_info("Offer IPFS data succesfully retrieved (AES key+ AES/FHE ciphered offer)");
 
                 /// decipher AES layer and store FHE offers
                 clearedOffers = utils_decryptOffer_withIPFS(std::to_string(i + 1) + ".", numOffers, clearedOffers);
-                i=i+1;
+                i = i + 1;
             }
 
             print_info("Decipher of FHE offers ok (#=" + std::to_string(clearedOffers.size()) + ")");
@@ -179,7 +177,7 @@ void handler::handle_post(http_request message)
 
             //  decipher argmax for verification
             string winnerArgmax = utils_decipher(clearedOffers.size(), 1);
-            message.reply(status_codes::OK, "Argmax id of best offer is "+winnerArgmax);
+            message.reply(status_codes::OK, "Argmax id of best offer is " + winnerArgmax);
         }
 
         catch (const std::exception &e)
@@ -188,7 +186,7 @@ void handler::handle_post(http_request message)
             std::cerr << e.what() << std::endl;
         }
     }
-    else if (message.relative_uri().path() == "/offer")             /// computation of the new offer (ciphered data and aes key)
+    else if (message.relative_uri().path() == "/offer") /// computation of the new offer (ciphered data and aes key)
     {
         try
         {
@@ -196,10 +194,11 @@ void handler::handle_post(http_request message)
             // Configure IPFS
             std::string ipfsConfig_ = get_ipfs_config();
             ipfs::Client client("ipfs.infura.io", 5001, "", "https://");
-    
-            if (ipfsConfig_ == "local") {        
+
+            if (ipfsConfig_ == "local")
+            {
                 ipfs::Client client("localhost", 5001);
-            } 
+            }
 
             string offer = queries["offer"];
 
@@ -260,7 +259,8 @@ void handler::handle_post(http_request message)
         }
     }
 
-    else if (message.relative_uri().path().find("/debug") != string::npos) {
+    else if (message.relative_uri().path().find("/debug") != string::npos)
+    {
         try
         {
             string num = message.relative_uri().path();
@@ -268,18 +268,19 @@ void handler::handle_post(http_request message)
             cout << "After erase(idx) : ";
             cout << num;
 
-            print_debug("Launching test with " +num+ " offers ");
-            int numOffers = stoi(num);            
+            print_debug("Launching test with " + num + " offers ");
+            int numOffers = stoi(num);
             string offers[numOffers];
-            
+
             // fill in array randomly
-            for(int i = 0; i < numOffers; i++){
-                string randNum = to_string(rand() % 10); 
-                offers[i] = randNum;              
+            for (int i = 0; i < numOffers; i++)
+            {
+                string randNum = to_string(rand() % 10);
+                offers[i] = randNum;
                 //= {"1000", "62", "340"};
 
                 print_debug("offers =" + offers[i]);
-                cout<<"offer:"<<i <<"="<<randNum<<endl;
+                cout << "offer:" << i << "=" << randNum << endl;
             }
             /// generate offers
             for (int i = 0; i < numOffers; i++)
@@ -292,20 +293,17 @@ void handler::handle_post(http_request message)
             vector<LweSample *> clearedOffers;
             for (int i = 0; i < numOffers; i++)
             {
-                 
-                clearedOffers = utils_decryptOffer(std::to_string(i + 1) + ".", numOffers, clearedOffers);
 
-            
+                clearedOffers = utils_decryptOffer(std::to_string(i + 1) + ".", numOffers, clearedOffers);
             }
             print_debug("Decipher of FHE offers ok (#=" + std::to_string(clearedOffers.size()) + ")");
 
             //  launch comparison on "clearedOffers" that contains the cipher of all offers,
             print_debug("Launching comparison");
             utils_compare(clearedOffers, numOffers);
-           
 
             //  decipher argmax for verification
-            utils_decipher(clearedOffers.size(),1);
+            utils_decipher(clearedOffers.size(), 1);
 
             message.reply(status_codes::OK, "OK- debug\n");
         }
@@ -316,25 +314,26 @@ void handler::handle_post(http_request message)
         }
     }
 
-
-    else if (message.relative_uri().path().find("/finddebugaddition") != string::npos) {
+    else if (message.relative_uri().path().find("/finddebugaddition") != string::npos)
+    {
         try
         {
             string num = message.relative_uri().path();
             num.erase(num.begin() + 0, num.begin() + 21);
-            print_debug("Launching addition test with " +num+ " offers");
-            int numOffers =  stoi(num);  
-                     
+            print_debug("Launching addition test with " + num + " offers");
+            int numOffers = stoi(num);
+
             string offers[numOffers];
-            
+
             // fill in array randomly
-            for(int i = 0; i < numOffers; i++){
-                string randNum = to_string(rand() % 100); 
-                offers[i] = randNum;              
+            for (int i = 0; i < numOffers; i++)
+            {
+                string randNum = to_string(rand() % 100);
+                offers[i] = randNum;
                 //= {"1000", "62", "340"};
 
                 print_debug("offers i = " + offers[i]);
-                cout<<"offer:"<<i <<"="<<randNum<<endl;
+                cout << "offer:" << i << "=" << randNum << endl;
             }
 
             /// generate offers
@@ -346,22 +345,22 @@ void handler::handle_post(http_request message)
 
             /// decipher AES layer and store FHE offers
             vector<LweSample *> clearedOffers;
-            LweSample * result;
+            LweSample *result;
 
             for (int i = 0; i < numOffers; i++)
             {
-               
+
                 clearedOffers = utils_decryptOffer(std::to_string(i + 1) + ".", numOffers, clearedOffers);
             }
             print_debug("Decipher of FHE offers ok (#=" + std::to_string(clearedOffers.size()) + ")");
 
             //  launch comparison on "clearedOffers" that contains the cipher of all offers,
-            result = addition_multiple(clearedOffers,numOffers);
-            utils_decipher(1,2);
+            result = addition_multiple(clearedOffers, numOffers);
+            utils_decipher(1, 2);
 
             message.reply(status_codes::OK, "OK- debug\n");
         }
-        
+
         catch (const std::exception &e)
         {
             cout << "[ERROR] --> in debug multi" << endl;
@@ -369,25 +368,26 @@ void handler::handle_post(http_request message)
         }
     }
 
-
-    else if (message.relative_uri().path().find("/finddebugsubstraction") != string::npos) {
+    else if (message.relative_uri().path().find("/finddebugsubstraction") != string::npos)
+    {
         try
         {
             string num = message.relative_uri().path();
             num.erase(num.begin() + 0, num.begin() + 25);
-            print_debug("Launching substraction test with " +num+ " offers");
-            int numOffers =  stoi(num);  
-                     
+            print_debug("Launching substraction test with " + num + " offers");
+            int numOffers = stoi(num);
+
             string offers[numOffers];
-            
+
             // fill in array randomly
-            for(int i = 0; i < numOffers; i++){
-                string randNum = to_string(rand() % 100); 
-                offers[i] = randNum;              
+            for (int i = 0; i < numOffers; i++)
+            {
+                string randNum = to_string(rand() % 100);
+                offers[i] = randNum;
                 //= {"1000", "62", "340"};
 
                 print_debug("offers i = " + offers[i]);
-                cout<<"offer:"<<i <<"="<<randNum<<endl;
+                cout << "offer:" << i << "=" << randNum << endl;
             }
 
             /// generate offers
@@ -399,22 +399,22 @@ void handler::handle_post(http_request message)
 
             /// decipher AES layer and store FHE offers
             vector<LweSample *> clearedOffers;
-            LweSample * result;
+            LweSample *result;
 
             for (int i = 0; i < numOffers; i++)
             {
-               
+
                 clearedOffers = utils_decryptOffer(std::to_string(i + 1) + ".", numOffers, clearedOffers);
             }
             print_debug("Decipher of FHE offers ok (#=" + std::to_string(clearedOffers.size()) + ")");
 
             //  launch comparison on "clearedOffers" that contains the cipher of all offers,
-            result = substraction_multiple(clearedOffers,numOffers);
-            utils_decipher(1,3);
+            result = substraction_multiple(clearedOffers, numOffers);
+            utils_decipher(1, 3);
 
             message.reply(status_codes::OK, "OK- debug\n");
         }
-        
+
         catch (const std::exception &e)
         {
             cout << "[ERROR] --> in debug multi" << endl;
@@ -422,15 +422,13 @@ void handler::handle_post(http_request message)
         }
     }
 
-    else if (message.relative_uri().path().find("/additionVector") != string::npos ){
+    else if (message.relative_uri().path().find("/additionVector") != string::npos)
+    {
 
         string num = message.relative_uri().path();
-            num.erase(num.begin() + 0, num.begin() + 18);
-            print_debug("Launching substraction test with " +num+ " offers");
-            int numOffers =  stoi(num); 
-        
-        
-
+        num.erase(num.begin() + 0, num.begin() + 18);
+        print_debug("Launching substraction test with " + num + " offers");
+        int numOffers = stoi(num);
     }
 
     else

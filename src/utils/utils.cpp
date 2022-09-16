@@ -37,16 +37,14 @@
 
 using Json = nlohmann::json;
 
-
 using namespace std;
 using namespace CryptoPP;
 
-using aes_key_t = std::array<CryptoPP::byte, CryptoPP::AES::DEFAULT_KEYLENGTH>;
-using aes_iv_t = std::array<CryptoPP::byte, CryptoPP::AES::BLOCKSIZE>;
+using aes_key_t = std::array<byte, CryptoPP::AES::DEFAULT_KEYLENGTH>;
+using aes_iv_t = std::array<byte, CryptoPP::AES::BLOCKSIZE>;
 
-
-#include <stdio.h>  /* defines FILENAME_MAX */
-// #define WINDOWS  /* uncomment this line to use it for windows.*/ 
+#include <stdio.h> /* defines FILENAME_MAX */
+// #define WINDOWS  /* uncomment this line to use it for windows.*/
 #ifdef WINDOWS
 #include <direct.h>
 #define GetCurrentDir _getcwd
@@ -54,16 +52,17 @@ using aes_iv_t = std::array<CryptoPP::byte, CryptoPP::AES::BLOCKSIZE>;
 #include <unistd.h>
 #define GetCurrentDir getcwd
 #endif
-#include<iostream>
+#include <iostream>
 
-std::string GetCurrentWorkingDir( void ) {
-  char buff[FILENAME_MAX];
-  GetCurrentDir( buff, FILENAME_MAX );
-  std::string current_working_dir(buff);
-  return current_working_dir;
+std::string GetCurrentWorkingDir(void)
+{
+    char buff[FILENAME_MAX];
+    GetCurrentDir(buff, FILENAME_MAX);
+    std::string current_working_dir(buff);
+    return current_working_dir;
 }
 
-string myCompURLs=GetCurrentWorkingDir()+"/src/utils/url_filenames.json";
+string myCompURLs = GetCurrentWorkingDir() + "/src/utils/url_filenames.json";
 
 void print_info(string msg)
 {
@@ -80,34 +79,36 @@ void print_debug(string msg)
     cout << "[DEBUG] " << msg << endl;
 }
 
-
-string get_path(string query){
+string get_path(string query)
+{
     std::ifstream ifs(myCompURLs);
     Json jf = Json::parse(ifs);
-    string path= jf[query];
+    string path = jf[query];
     return path;
 }
 
-string get_filename(string query){
+string get_filename(string query)
+{
     std::ifstream ifs(myCompURLs);
     Json jf = Json::parse(ifs);
-    std::string tmpPath= jf["fd_data"];
+    std::string tmpPath = jf["fd_data"];
     std::string myQuery = jf[query];
-    std::string concat = tmpPath+myQuery; 
+    std::string concat = tmpPath + myQuery;
     return concat;
 }
 
-string get_ipfs_config(){
+string get_ipfs_config()
+{
     std::ifstream ifs(myCompURLs);
     Json jf = Json::parse(ifs);
-    std::string ipfsConfig= jf["ipfs_config"];
+    std::string ipfsConfig = jf["ipfs_config"];
     return ipfsConfig;
 }
 
 /***
  * Get a file from the IPFS server and save it locally
  * @return the name of the file saved
- * 
+ *
  * **/
 string utils_ipfsToFile(string ipfsAddress, string offerName, ipfs::Client client, string fileType)
 {
@@ -135,7 +136,7 @@ string utils_computeNumberOfOffers(http_request message)
     try
     {
         auto tmpbis = message.extract_json().get(); // reading test.json data stored as tmp
-        
+
         int cnt = 0;
         for (auto it = tmpbis.as_object().cbegin(); it != tmpbis.as_object().cend(); ++it) // for each ciphered offer do:
         {
@@ -151,7 +152,6 @@ string utils_computeNumberOfOffers(http_request message)
     return prefix;
 }
 
-
 void utils_export2Data(std::vector<LweSample *> ciphertext, std::string filename, TFheGateBootstrappingParameterSet *params)
 {
     FILE *cloud_data = fopen(filename.c_str(), "wb");
@@ -163,9 +163,9 @@ void utils_export2Data(std::vector<LweSample *> ciphertext, std::string filename
     fclose(cloud_data);
 }
 
-
 void full_adder(LweSample *sum, const LweSample *x, const LweSample *y, const int32_t nb_bits,
-                const TFheGateBootstrappingCloudKeySet *keyset) {
+                const TFheGateBootstrappingCloudKeySet *keyset)
+{
     const LweParams *in_out_params = keyset->params->in_out_params;
     // carries
     LweSample *carry = new_LweSample_array(2, in_out_params);
@@ -173,14 +173,15 @@ void full_adder(LweSample *sum, const LweSample *x, const LweSample *y, const in
     bootsCONSTANT(carry, 0, keyset);
     LweSample *temp = new_LweSample_array(3, in_out_params);
 
-    for (int32_t i = 0; i < nb_bits; ++i) {
-        //sumi = xi XOR yi XOR carry(i-1) 
+    for (int32_t i = 0; i < nb_bits; ++i)
+    {
+        // sumi = xi XOR yi XOR carry(i-1)
         bootsXOR(temp, x + i, y + i, keyset); // temp = xi XOR yi
         bootsXOR(sum + i, temp, carry, keyset);
 
         // carry = (xi AND yi) XOR (carry(i-1) AND (xi XOR yi))
         bootsAND(temp + 1, x + i, y + i, keyset); // temp1 = xi AND yi
-        bootsAND(temp + 2, carry, temp, keyset); // temp2 = carry AND temp
+        bootsAND(temp + 2, carry, temp, keyset);  // temp2 = carry AND temp
         bootsXOR(carry + 1, temp + 1, temp + 2, keyset);
         bootsCOPY(carry, carry + 1, keyset);
     }
@@ -191,7 +192,8 @@ void full_adder(LweSample *sum, const LweSample *x, const LweSample *y, const in
 }
 
 void full_substract(LweSample *sum, const LweSample *x, const LweSample *y, const int32_t nb_bits,
-                const TFheGateBootstrappingCloudKeySet *keyset) {
+                    const TFheGateBootstrappingCloudKeySet *keyset)
+{
     const LweParams *in_out_params = keyset->params->in_out_params;
     // carries
     LweSample *carry = new_LweSample_array(2, in_out_params);
@@ -199,44 +201,39 @@ void full_substract(LweSample *sum, const LweSample *x, const LweSample *y, cons
     bootsCONSTANT(carry, 0, keyset);
     LweSample *temp = new_LweSample_array(3, in_out_params);
 
-
-     LweSample *not_x = new_LweSample_array(4, in_out_params);
+    LweSample *not_x = new_LweSample_array(4, in_out_params);
     LweSample *not_temp = new_LweSample_array(3, in_out_params);
- 
 
-    for (int32_t i = 0; i < nb_bits; ++i) {
-        //sumi = xi XOR yi XOR carry(i-1) 
+    for (int32_t i = 0; i < nb_bits; ++i)
+    {
+        // sumi = xi XOR yi XOR carry(i-1)
         bootsXOR(temp, x + i, y + i, keyset); // temp = xi XOR yi
         bootsXOR(sum + i, temp, carry, keyset);
 
         // carry = (xi AND yi) XOR (carry(i-1) AND (xi XOR yi))
 
-        bootsNOT(not_x,x+i,keyset);
-        bootsNOT(not_temp,temp, keyset);
+        bootsNOT(not_x, x + i, keyset);
+        bootsNOT(not_temp, temp, keyset);
 
-
-        bootsAND(temp + 1, not_x, y + i, keyset); // temp1 = xi AND yi
+        bootsAND(temp + 1, not_x, y + i, keyset);    // temp1 = xi AND yi
         bootsAND(temp + 2, carry, not_temp, keyset); // temp2 = carry AND temp
         bootsXOR(carry + 1, temp + 1, temp + 2, keyset);
         bootsCOPY(carry, carry + 1, keyset);
     }
     bootsCOPY(sum, carry, keyset);
-    
 
     delete_LweSample_array(3, temp);
     delete_LweSample_array(2, carry);
 }
 
-
 void full_divide(LweSample *sum, const LweSample *x, const LweSample *y, const int32_t nb_bits,
-                const TFheGateBootstrappingCloudKeySet *keyset){
-
-                    
-                }
-
+                 const TFheGateBootstrappingCloudKeySet *keyset)
+{
+}
 
 void comparison_MUX(LweSample *comp, const LweSample *x, const LweSample *y, const int32_t nb_bits,
-                    const TFheGateBootstrappingSecretKeySet *keyset) {
+                    const TFheGateBootstrappingSecretKeySet *keyset)
+{
     const LweParams *in_out_params = keyset->params->in_out_params;
     // carries
     LweSample *carry = new_LweSample_array(2, in_out_params);
@@ -244,7 +241,8 @@ void comparison_MUX(LweSample *comp, const LweSample *x, const LweSample *y, con
     // temps
     LweSample *temp = new_LweSample(in_out_params);
 
-    for (int32_t i = 0; i < nb_bits; ++i) {
+    for (int32_t i = 0; i < nb_bits; ++i)
+    {
         bootsXOR(temp, x + i, y + i, &keyset->cloud); // temp = xi XOR yi
         bootsMUX(carry + 1, temp, y + i, carry, &keyset->cloud);
         bootsCOPY(carry, carry + 1, &keyset->cloud);
