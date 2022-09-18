@@ -3,7 +3,7 @@
 #include <tfhe/tfhe_io.h>
 #include <stdio.h>
 #include <time.h>
-#include<algorithm>
+#include <algorithm>
 namespace std
 {
     class Verif
@@ -35,78 +35,69 @@ namespace std
         {
         }
 
-        string decrypt(string filename,int id)
+        string decrypt(string filename, int id)
         {
-            
+
             FILE *answer_data = fopen(filename.c_str(), "rb");
             print_debug("filename = " + filename);
             for (size_t j = 0; j < offerCount; j++)
             {
-                
+
                 for (int i = 0; i < 16; i++)
                 {
-                    
+
                     import_gate_bootstrapping_ciphertext_fromFile(answer_data, &test[i], params);
-                    
                 }
 
                 int16_t int_answer = 0;
                 for (int i = 0; i < 16; i++)
-                {   
+                {
                     int ai = bootsSymDecrypt(&test[i], key) > 0;
                     int_answer |= (ai << i);
                 }
-                 printf("And the result is: %d\n", int_answer);
+                printf("And the result is: %d\n", int_answer);
                 intAnswers.push_back(int_answer);
-                
-                
             }
-            
+
             fclose(answer_data);
 
             switch (id)
             {
-                
-            //argmax
+
+            // argmax
             case 1:
             {
-            std::cout << " Maxed clear Vector" << std::endl;
-            for (size_t i = 0; i < intAnswers.size(); i++)
-            {
-                cout << " | " << intAnswers[i];
+                std::cout << " Maxed clear Vector" << std::endl;
+                for (size_t i = 0; i < intAnswers.size(); i++)
+                {
+                    cout << " | " << intAnswers[i];
+                }
+                cout << " |" << endl;
+                printf("Verification complete\n");
+
+                std::vector<int>::iterator max = max_element(intAnswers.begin(), intAnswers.end());
+                int argmaxVal = std::distance(intAnswers.begin(), max); // absolute index of max
+                return to_string(argmaxVal);
             }
-            cout << " |" << endl;
-            printf("Verification complete\n");
+            break;
 
-            std::vector<int>::iterator max = max_element(intAnswers.begin(), intAnswers.end()); 
-            int argmaxVal = std::distance(intAnswers.begin(), max); // absolute index of max
-            return to_string(argmaxVal);
-            }
-                break;
-
-
-            //addition
+            // addition
             case 2:
-            printf("Verification addition complete\n");
-            return to_string(0);
+                printf("Verification addition complete\n");
+                return to_string(0);
                 break;
 
-            //substraction
+            // substraction
             case 3:
-            printf("Verification substraction complete\n");
-            return to_string(0);
+                printf("Verification substraction complete\n");
+                return to_string(0);
                 break;
-
-
 
             default:
                 return to_string(0);
                 break;
-            
-            
             }
             return to_string(0);
-            
         }
     };
 }

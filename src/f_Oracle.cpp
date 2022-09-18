@@ -34,16 +34,17 @@ using aes_iv_t = std::array<CryptoPP::byte, CryptoPP::AES::BLOCKSIZE>;
 
 string store_rsa_keys_to_ipfs(string path_to_tmp)
 {
-    //ROLES: FHE ADMIN AND ORACLE
+    // ROLES: FHE ADMIN AND ORACLE
     ipfs::Json tmp;
     // Configure IPFS
     std::string ipfsConfig = get_ipfs_config();
     ipfs::Client client("ipfs.infura.io", 5001, "", "https://");
-    if (ipfsConfig == "local") {        
+    if (ipfsConfig == "local")
+    {
         ipfs::Client client("localhost", 5001);
-    } 
-    //problem here
-    print_debug("path = " +  path_to_tmp);
+    }
+    // problem here
+    print_debug("path = " + path_to_tmp);
     client.FilesAdd({{"publicKey.key", ipfs::http::FileUpload::Type::kFileName, path_to_tmp + "publicKey.key"}},
                     &tmp);
 
@@ -74,12 +75,12 @@ void decrypt(const aes_key_t &key, const aes_iv_t &iv,
 }
 
 /***
-         *  Decrypt the AES key with the "./publicKey.key"
-         * */
+ *  Decrypt the AES key with the "./publicKey.key"
+ * */
 void RSADecryption(std::string filename, std::string prefix)
 {
 
-    //cout <<"entering rsa decryption"<< endl;
+    // cout <<"entering rsa decryption"<< endl;
     CryptoPP::AutoSeededRandomPool rng;
     CryptoPP::RSAES_OAEP_SHA_Decryptor dec;
     dec.AccessKey().BERDecode(CryptoPP::FileSource(get_filename("RSA_sk").c_str(), true).Ref());
@@ -98,18 +99,17 @@ void RSADecryption(std::string filename, std::string prefix)
                                                               new CryptoPP::FileSink(char_arr)) // PK_DecryptorFilter
     );
 
-    //return 'ok';                                                                             // StringSource
+    // return 'ok';                                                                             // StringSource
 }
 /***
-         * Get AES key from file
-         * */
+ * Get AES key from file
+ * */
 aes_key_t getAESKey(string filename)
 {
     aes_key_t key;
     CryptoPP::FileSource fs(filename.c_str(), true, new CryptoPP::ArraySink(key.data(), key.size()));
     return key;
 }
-
 
 CryptoPP::RSA::PublicKey utils_generateRSAKey()
 {
@@ -134,14 +134,14 @@ CryptoPP::RSA::PublicKey utils_generateRSAKey()
  * @arg AESKeyName: name of the file with the encrypted AES keyname
  * @arg offerName: name of the file with the encrypted offer
  * @arg numOffers: number of total offers (to instantiate cloud)
- * 
+ *
  * @return FHE offer
  * ***/
 vector<LweSample *> utils_decryptOffer(string prefix, int numOffers, vector<LweSample *> clearedOffers)
 {
     /// ROLE: ORACLE
 
-    string fd_data = GetCurrentWorkingDir()+"/"+get_path("fd_data");
+    string fd_data = GetCurrentWorkingDir() + "/" + get_path("fd_data");
 
     string AESKeyName = fd_data + prefix + "AES.key";
     string offerName = fd_data + prefix + "AES.data";
@@ -152,14 +152,13 @@ vector<LweSample *> utils_decryptOffer(string prefix, int numOffers, vector<LweS
     TFheGateBootstrappingParameterSet *params = new_tfheGateBootstrappingParameterSet_fromFile(params_file);
     fclose(params_file);
 
-
     string FHE_sk = get_filename("FHE_sk");
     FILE *secret_key = fopen(FHE_sk.c_str(), "rb");
     TFheGateBootstrappingSecretKeySet *key = new_tfheGateBootstrappingSecretKeySet_fromFile(secret_key);
     fclose(secret_key);
 
     string FHE_pk = get_filename("FHE_pk");
-    FILE *cloud_key = fopen(FHE_pk.c_str(), "rb"); //reads the cloud key from file
+    FILE *cloud_key = fopen(FHE_pk.c_str(), "rb"); // reads the cloud key from file
     TFheGateBootstrappingCloudKeySet *bk = new_tfheGateBootstrappingCloudKeySet_fromFile(cloud_key);
     fclose(cloud_key);
     const TFheGateBootstrappingParameterSet *cloud_params = bk->params; // the params are inside the key
@@ -173,7 +172,7 @@ vector<LweSample *> utils_decryptOffer(string prefix, int numOffers, vector<LweS
     boost::erase_all(cloudPrefix, "offer");
     string cloudData = fd_data + cloudPrefix + "cloud.data";
 
-    //Comparator cloud = Comparator(cloudData, "tmp/cloud.key", numOffers, utils_cipherInt(0, params, key), utils_cipherInt(10, params, key));
+    // Comparator cloud = Comparator(cloudData, "tmp/cloud.key", numOffers, utils_cipherInt(0, params, key), utils_cipherInt(10, params, key));
 
     // decipher and fetch AES key
     RSADecryption(AESKeyName, cloudPrefix);
@@ -184,7 +183,7 @@ vector<LweSample *> utils_decryptOffer(string prefix, int numOffers, vector<LweS
     decrypt(key2, iv_decrypt, offerName, cloudPrefix + "cloud.data");
 
     // retrieve FHE-ciphered offer from file
-    LweSample *ciphertext = new_gate_bootstrapping_ciphertext_array(16, cloud_params); //read the 2x16 ciphertexts
+    LweSample *ciphertext = new_gate_bootstrapping_ciphertext_array(16, cloud_params); // read the 2x16 ciphertexts
     string cloudDataFileName = cloudPrefix + "cloud.data";
     FILE *cloud_data1 = fopen(cloudDataFileName.c_str(), "rb");
     for (int i = 0; i < 16; i++)
@@ -200,22 +199,21 @@ vector<LweSample *> utils_decryptOffer(string prefix, int numOffers, vector<LweS
     return clearedOffers;
 }
 
-
 /***
  * Decrypts the offer encrypted with AES+FHE and the AES key encrypted in RSA.
  * @arg prefix: offer prefix (following the order of the vector of offers to compare)
  * @arg AESKeyName: name of the file with the encrypted AES keyname
  * @arg offerName: name of the file with the encrypted offer
  * @arg numOffers: number of total offers (to instantiate cloud)
- * 
+ *
  * @return FHE offer
  * ***/
 vector<LweSample *> utils_decryptOffer_withIPFS(string prefix, int numOffers, vector<LweSample *> clearedOffers)
 {
     //// ROLE:ORACLE
 
-    string AESKeyName = GetCurrentWorkingDir()+"/"+get_path("fd_ipfs") + prefix + "AES.key";
-    string offerName = GetCurrentWorkingDir()+"/"+get_path("fd_ipfs") + prefix + "AES.data";
+    string AESKeyName = GetCurrentWorkingDir() + "/" + get_path("fd_ipfs") + prefix + "AES.key";
+    string offerName = GetCurrentWorkingDir() + "/" + get_path("fd_ipfs") + prefix + "AES.data";
 
     // load params and keys
     string FHE_metadata = get_filename("FHE_metadata");
@@ -229,15 +227,15 @@ vector<LweSample *> utils_decryptOffer_withIPFS(string prefix, int numOffers, ve
     fclose(secret_key);
 
     string FHE_pk = get_filename("FHE_pk");
-    FILE *cloud_key = fopen(FHE_pk.c_str(), "rb"); //reads the cloud key from file
+    FILE *cloud_key = fopen(FHE_pk.c_str(), "rb"); // reads the cloud key from file
     TFheGateBootstrappingCloudKeySet *bk = new_tfheGateBootstrappingCloudKeySet_fromFile(cloud_key);
     fclose(cloud_key);
     const TFheGateBootstrappingParameterSet *cloud_params = bk->params; // the params are inside the key
 
     /// decipher AES layer and store FHE offers
-    string fd_data = GetCurrentWorkingDir()+"/"+get_path("fd_data");
+    string fd_data = GetCurrentWorkingDir() + "/" + get_path("fd_data");
 
-    aes_iv_t iv_decrypt{};    
+    aes_iv_t iv_decrypt{};
     string ivFileName = fd_data + prefix + "newIV.data";
     CryptoPP::FileSource fs(ivFileName.c_str(), true, new CryptoPP::ArraySink(iv_decrypt.data(), iv_decrypt.size()));
 
@@ -245,7 +243,7 @@ vector<LweSample *> utils_decryptOffer_withIPFS(string prefix, int numOffers, ve
     boost::erase_all(cloudPrefix, "offer");
     string cloudData = fd_data + cloudPrefix + "cloud.data";
 
-    //Comparator cloud = Comparator(cloudData, "tmp/cloud.key", numOffers, utils_cipherInt(0, params, key), utils_cipherInt(10, params, key));
+    // Comparator cloud = Comparator(cloudData, "tmp/cloud.key", numOffers, utils_cipherInt(0, params, key), utils_cipherInt(10, params, key));
 
     // decipher and fetch AES key
     RSADecryption(AESKeyName, cloudPrefix);
@@ -256,7 +254,7 @@ vector<LweSample *> utils_decryptOffer_withIPFS(string prefix, int numOffers, ve
     decrypt(key2, iv_decrypt, offerName, cloudPrefix + "cloud.data");
 
     // retrieve FHE-ciphered offer from file
-    LweSample *ciphertext = new_gate_bootstrapping_ciphertext_array(16, cloud_params); //read the 2x16 ciphertexts
+    LweSample *ciphertext = new_gate_bootstrapping_ciphertext_array(16, cloud_params); // read the 2x16 ciphertexts
     string cloudDataFileName = cloudPrefix + "cloud.data";
     FILE *cloud_data1 = fopen(cloudDataFileName.c_str(), "rb");
     for (int i = 0; i < 16; i++)
@@ -301,135 +299,126 @@ LweSample *addition(const LweSample *a, const LweSample *b, const TFheGateBootst
     return (res);
 }
 
-
 /***
  * Adds 2 or more ciphered offers
  * @arg offers: vector of FHE offers
  * @arg offerNbr: the number of offers
- * 
+ *
  * @return encrypted result
  * ***/
-LweSample * addition_multiple(vector<LweSample *> offers, int offerNbr){
+LweSample *addition_multiple(vector<LweSample *> offers, int offerNbr)
+{
 
-    const int nb_bits = 16;
-
-     string FHE_metadata = get_filename("FHE_metadata");
-    FILE *params_file = fopen(FHE_metadata.c_str(), "rb");
-    TFheGateBootstrappingParameterSet *params = new_tfheGateBootstrappingParameterSet_fromFile(params_file);
-    fclose(params_file);
-    
-
-    string FHE_sk = get_filename("FHE_sk");
-    FILE *secret_key = fopen(FHE_sk.c_str(), "rb");
-    TFheGateBootstrappingSecretKeySet *key = new_tfheGateBootstrappingSecretKeySet_fromFile(secret_key);
-    fclose(secret_key);
-    
-
-     string FHE_pk = get_filename("FHE_pk");
-    FILE *cloud_key = fopen(FHE_pk.c_str(), "rb"); //reads the cloud key from file
-    TFheGateBootstrappingCloudKeySet *bk = new_tfheGateBootstrappingCloudKeySet_fromFile(cloud_key);
-    fclose(cloud_key);
-
-
-   LweSample* tmp= new_gate_bootstrapping_ciphertext_array(16, bk->params);
-   LweSample * result=new_gate_bootstrapping_ciphertext_array(16, bk->params);
-    
-    
-    full_adder(tmp, offers[0], offers[1], 16, bk);
-    for(int index=2; index<offerNbr; index++){        
-        for(int j = 0; j<nb_bits; j++){
-        bootsCOPY(&result[j], &tmp[j],bk);
-    }
-        full_adder(tmp,result, offers[index],16,bk);
-    }
-    for(int i = 0; i<nb_bits; i++){
-        bootsCOPY(&result[i], &tmp[i],bk);
-    }
-    
-
-    string cleared_data = get_filename("cleared_data");
-    FILE *cloud_data = fopen(cleared_data.c_str(), "wb");
-    for (int j = 0; j < nb_bits; j++)
-    {
-       
-        export_gate_bootstrapping_ciphertext_toFile(cloud_data, &result[j], bk->params);
-            
-    }
-    fclose(cloud_data);
-    return(result);
-}
-
-
-
-/***
- * Substracts 2 or more ciphered offers
- * see [1] in function for further details
- * @arg offers: vector of FHE offers
- * @arg offerNbr: the number of offers
- * 
- * 
- * @return encrypted result
- * ***/
-LweSample * substraction_multiple( vector<LweSample *> offers, int offerNbr){
-    
     const int nb_bits = 16;
 
     string FHE_metadata = get_filename("FHE_metadata");
     FILE *params_file = fopen(FHE_metadata.c_str(), "rb");
     TFheGateBootstrappingParameterSet *params = new_tfheGateBootstrappingParameterSet_fromFile(params_file);
     fclose(params_file);
-    
 
     string FHE_sk = get_filename("FHE_sk");
     FILE *secret_key = fopen(FHE_sk.c_str(), "rb");
     TFheGateBootstrappingSecretKeySet *key = new_tfheGateBootstrappingSecretKeySet_fromFile(secret_key);
     fclose(secret_key);
-    
 
-     string FHE_pk = get_filename("FHE_pk");
-    FILE *cloud_key = fopen(FHE_pk.c_str(), "rb"); //reads the cloud key from file
+    string FHE_pk = get_filename("FHE_pk");
+    FILE *cloud_key = fopen(FHE_pk.c_str(), "rb"); // reads the cloud key from file
     TFheGateBootstrappingCloudKeySet *bk = new_tfheGateBootstrappingCloudKeySet_fromFile(cloud_key);
     fclose(cloud_key);
 
-    
-    LweSample* ciphered_zero = new_gate_bootstrapping_ciphertext_array(16, bk->params);
-         
-    full_substract(ciphered_zero, offers[0],offers[0],16,bk);
-    
-    // [1]
-    // this artificial zero enables us to substract all the numbers, 
-    // like so : 0 -a -b -c ...
-    // and not like : a-b-c-d... instead.
-    
+    LweSample *tmp = new_gate_bootstrapping_ciphertext_array(16, bk->params);
+    LweSample *result = new_gate_bootstrapping_ciphertext_array(16, bk->params);
 
-   LweSample* tmp= new_gate_bootstrapping_ciphertext_array(16, bk->params);
-   LweSample * result=new_gate_bootstrapping_ciphertext_array(16, bk->params);
-    
-    
-    full_substract(tmp,ciphered_zero, offers[0],16,bk);
-    for(int index=1; index<offerNbr; index++){
-        
-        
-        for(int j = 0; j<nb_bits; j++){
-        bootsCOPY(&result[j], &tmp[j],bk);
+    full_adder(tmp, offers[0], offers[1], 16, bk);
+    for (int index = 2; index < offerNbr; index++)
+    {
+        for (int j = 0; j < nb_bits; j++)
+        {
+            bootsCOPY(&result[j], &tmp[j], bk);
+        }
+        full_adder(tmp, result, offers[index], 16, bk);
     }
-        full_substract(tmp,result, offers[index],16,bk);
+    for (int i = 0; i < nb_bits; i++)
+    {
+        bootsCOPY(&result[i], &tmp[i], bk);
     }
-    for(int i = 0; i<nb_bits; i++){
-        bootsCOPY(&result[i], &tmp[i],bk);
-    }
-
 
     string cleared_data = get_filename("cleared_data");
     FILE *cloud_data = fopen(cleared_data.c_str(), "wb");
     for (int j = 0; j < nb_bits; j++)
     {
-       
+
         export_gate_bootstrapping_ciphertext_toFile(cloud_data, &result[j], bk->params);
-            
     }
     fclose(cloud_data);
-    return(result);
+    return (result);
+}
+
+/***
+ * Substracts 2 or more ciphered offers
+ * see [1] in function for further details
+ * @arg offers: vector of FHE offers
+ * @arg offerNbr: the number of offers
+ *
+ *
+ * @return encrypted result
+ * ***/
+LweSample *substraction_multiple(vector<LweSample *> offers, int offerNbr)
+{
+
+    const int nb_bits = 16;
+
+    string FHE_metadata = get_filename("FHE_metadata");
+    FILE *params_file = fopen(FHE_metadata.c_str(), "rb");
+    TFheGateBootstrappingParameterSet *params = new_tfheGateBootstrappingParameterSet_fromFile(params_file);
+    fclose(params_file);
+
+    string FHE_sk = get_filename("FHE_sk");
+    FILE *secret_key = fopen(FHE_sk.c_str(), "rb");
+    TFheGateBootstrappingSecretKeySet *key = new_tfheGateBootstrappingSecretKeySet_fromFile(secret_key);
+    fclose(secret_key);
+
+    string FHE_pk = get_filename("FHE_pk");
+    FILE *cloud_key = fopen(FHE_pk.c_str(), "rb"); // reads the cloud key from file
+    TFheGateBootstrappingCloudKeySet *bk = new_tfheGateBootstrappingCloudKeySet_fromFile(cloud_key);
+    fclose(cloud_key);
+
+    LweSample *ciphered_zero = new_gate_bootstrapping_ciphertext_array(16, bk->params);
+
+    full_substract(ciphered_zero, offers[0], offers[0], 16, bk);
+
+    // [1]
+    // this artificial zero enables us to substract all the numbers,
+    // like so : 0 -a -b -c ...
+    // and not like : a-b-c-d... instead.
+
+    LweSample *tmp = new_gate_bootstrapping_ciphertext_array(16, bk->params);
+    LweSample *result = new_gate_bootstrapping_ciphertext_array(16, bk->params);
+
+    full_substract(tmp, ciphered_zero, offers[0], 16, bk);
+    for (int index = 1; index < offerNbr; index++)
+    {
+
+        for (int j = 0; j < nb_bits; j++)
+        {
+            bootsCOPY(&result[j], &tmp[j], bk);
+        }
+        full_substract(tmp, result, offers[index], 16, bk);
+    }
+    for (int i = 0; i < nb_bits; i++)
+    {
+        bootsCOPY(&result[i], &tmp[i], bk);
+    }
+
+    string cleared_data = get_filename("cleared_data");
+    FILE *cloud_data = fopen(cleared_data.c_str(), "wb");
+    for (int j = 0; j < nb_bits; j++)
+    {
+
+        export_gate_bootstrapping_ciphertext_toFile(cloud_data, &result[j], bk->params);
+    }
+    fclose(cloud_data);
+    return (result);
 }
 
 LweSample *minimum(
@@ -457,8 +446,8 @@ LweSample *minimum(
 }
 
 /***
-         *  Function taking FHE offers as input and comparing the value to obtain the ordered vector 
-         **/
+ *  Function taking FHE offers as input and comparing the value to obtain the ordered vector
+ **/
 void utils_getMinimum(LweSample *c_zero, LweSample *c_ten,
                       vector<LweSample *> offers)
 {
@@ -504,13 +493,13 @@ void utils_getMinimum(LweSample *c_zero, LweSample *c_ten,
 }
 
 /***
- * 
+ *
  * Take a vector of cipher and use cloud.getMinimum() to compare them
  * @arg offerNbr: number of offers to compare
  * @arg cipherVector: Vector of all the cipher to compare
- * @warning NOT WORKING 
+ * @warning NOT WORKING
  * @todo WORK IN PROGRESS
- * 
+ *
  * ***/
 void utils_compare(vector<LweSample *> offers, int offerNbr)
 {
@@ -540,78 +529,62 @@ void utils_compare(vector<LweSample *> offers, int offerNbr)
     delete_gate_bootstrapping_parameters(params);
 }
 
-LweSample * divison( LweSample * offer1, LweSample * offer2 ){
-    
+LweSample *divison(LweSample *offer1, LweSample *offer2)
+{
+
     const int nb_bits = 16;
 
     string FHE_metadata = get_filename("FHE_metadata");
     FILE *params_file = fopen(FHE_metadata.c_str(), "rb");
     TFheGateBootstrappingParameterSet *params = new_tfheGateBootstrappingParameterSet_fromFile(params_file);
     fclose(params_file);
-    
 
     string FHE_sk = get_filename("FHE_sk");
     FILE *secret_key = fopen(FHE_sk.c_str(), "rb");
     TFheGateBootstrappingSecretKeySet *key = new_tfheGateBootstrappingSecretKeySet_fromFile(secret_key);
     fclose(secret_key);
-    
 
-     string FHE_pk = get_filename("FHE_pk");
-    FILE *cloud_key = fopen(FHE_pk.c_str(), "rb"); //reads the cloud key from file
+    string FHE_pk = get_filename("FHE_pk");
+    FILE *cloud_key = fopen(FHE_pk.c_str(), "rb"); // reads the cloud key from file
     TFheGateBootstrappingCloudKeySet *bk = new_tfheGateBootstrappingCloudKeySet_fromFile(cloud_key);
     fclose(cloud_key);
 
-   LweSample* tmp= new_gate_bootstrapping_ciphertext_array(16, bk->params);
-   LweSample * result=new_gate_bootstrapping_ciphertext_array(16, bk->params);
-    
-    
-   
-    
-    for(int i = 0; i<nb_bits; i++){
-        bootsCOPY(&result[i], &tmp[i],bk);
-    }
+    LweSample *tmp = new_gate_bootstrapping_ciphertext_array(16, bk->params);
+    LweSample *result = new_gate_bootstrapping_ciphertext_array(16, bk->params);
 
+    for (int i = 0; i < nb_bits; i++)
+    {
+        bootsCOPY(&result[i], &tmp[i], bk);
+    }
 
     string cleared_data = get_filename("cleared_data");
     FILE *cloud_data = fopen(cleared_data.c_str(), "wb");
     for (int j = 0; j < nb_bits; j++)
     {
-       
+
         export_gate_bootstrapping_ciphertext_toFile(cloud_data, &result[j], bk->params);
-            
     }
     fclose(cloud_data);
-    return(result);
+    return (result);
 }
 
-
-
-
-
-
-
-
 // vector<LweSample *> min_vector( vector<vector<LweSample *>> offers, int offerNbr){
-    
+
 //     const int nb_bits = 16;
 
 //     string FHE_metadata = get_filename("FHE_metadata");
 //     FILE *params_file = fopen(FHE_metadata.c_str(), "rb");
 //     TFheGateBootstrappingParameterSet *params = new_tfheGateBootstrappingParameterSet_fromFile(params_file);
 //     fclose(params_file);
-    
 
 //     string FHE_sk = get_filename("FHE_sk");
 //     FILE *secret_key = fopen(FHE_sk.c_str(), "rb");
 //     TFheGateBootstrappingSecretKeySet *key = new_tfheGateBootstrappingSecretKeySet_fromFile(secret_key);
 //     fclose(secret_key);
-    
 
 //      string FHE_pk = get_filename("FHE_pk");
 //     FILE *cloud_key = fopen(FHE_pk.c_str(), "rb"); //reads the cloud key from file
 //     TFheGateBootstrappingCloudKeySet *bk = new_tfheGateBootstrappingCloudKeySet_fromFile(cloud_key);
 //     fclose(cloud_key);
 
-
 // }
-
