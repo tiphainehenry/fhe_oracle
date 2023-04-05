@@ -14,9 +14,8 @@ using Json = nlohmann::json;
 
 std::unique_ptr<handler> g_httpHandler;
 
-
-#include <stdio.h>  /* defines FILENAME_MAX */
-// #define WINDOWS  /* uncomment this line to use it for windows.*/ 
+#include <stdio.h> /* defines FILENAME_MAX */
+// #define WINDOWS  /* uncomment this line to use it for windows.*/
 #ifdef WINDOWS
 #include <direct.h>
 #define GetCurrentDir _getcwd
@@ -24,25 +23,24 @@ std::unique_ptr<handler> g_httpHandler;
 #include <unistd.h>
 #define GetCurrentDir getcwd
 #endif
-#include<iostream>
+#include <iostream>
 
-std::string main_GetCurrentWorkingDir( void ) {
-  char buff[FILENAME_MAX];
-  GetCurrentDir( buff, FILENAME_MAX );
-  std::string current_working_dir(buff);
-  return current_working_dir;
+std::string main_GetCurrentWorkingDir(void)
+{
+    char buff[FILENAME_MAX];
+    GetCurrentDir(buff, FILENAME_MAX);
+    std::string current_working_dir(buff);
+    return current_working_dir;
 }
 
-
-std::string url=main_GetCurrentWorkingDir()+"/src/utils/url_filenames.json";
-string get_ipfs_config_main(){
+std::string url = main_GetCurrentWorkingDir() + "/src/utils/url_filenames.json";
+string get_ipfs_config_main()
+{
     std::ifstream ifs(url);
     Json jf = Json::parse(ifs);
-    std::string ipfsConfig= jf["ipfs_config"];
+    std::string ipfsConfig = jf["ipfs_config"];
     return ipfsConfig;
 }
-
-
 
 void on_initialize(const string_t &address)
 {
@@ -73,18 +71,21 @@ int main(int argc, char *argv[])
     ipfs::Json tmp;
     // Configure IPFS
     std::string ipfsConfig = get_ipfs_config_main();
-    
-    ipfs::Client client("ipfs.infura.io", 5001, "", "https://");
-    if (ipfsConfig == "local") {        
-        ipfs::Client client("localhost", 5001);
-        std::cout<< "[CONFIG] IPFS config: local"<<std::endl;
 
-    } else if(ipfsConfig == "infura"){
-        ipfs::Client client("ipfs.infura.io", 5001, "", "https://");
-        std::cout<< "[CONFIG] IPFS config: infura"<<std::endl;
+    ipfs::Client client("ipfs.infura.io", 5001, "", "https://");
+    if (ipfsConfig == "local")
+    {
+        ipfs::Client client("localhost", 5001);
+        std::cout << "[CONFIG] IPFS config: local" << std::endl;
     }
-    else{
-        std::cout<< "[CONFIG] IPFS config: not recognized"<<std::endl;
+    else if (ipfsConfig == "infura")
+    {
+        ipfs::Client client("ipfs.infura.io", 5001, "", "https://");
+        std::cout << "[CONFIG] IPFS config: infura" << std::endl;
+    }
+    else
+    {
+        std::cout << "[CONFIG] IPFS config: not recognized" << std::endl;
         on_shutdown();
         return 0;
     }
